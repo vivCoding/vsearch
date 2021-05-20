@@ -1,0 +1,15 @@
+{
+    "_id": "website url",
+    "url": "website url",
+    "title": "title",
+    "description": "description",
+    "keywords": [
+        "keyword1", "keyword2", "keyword3"
+    ],
+    "urls": [
+        "url1/on/page",
+        "url2/on/page",
+        "url3/on/page"
+    ],
+    "time": "yyyy-mm-dd hh:mm:ss:ms.msmsms"
+}
