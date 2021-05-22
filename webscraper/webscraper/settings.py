@@ -66,10 +66,10 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-# TODO
-#ITEM_PIPELINES = {
-#    'webscraper.pipelines.WebscraperPipeline': 300,
-#}
+ITEM_PIPELINES = {
+  #  'webscraper.pipelines.WriteToFilePipelin': 1,
+   'webscraper.pipelines.MongoPipeline': 2,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
@@ -96,14 +96,12 @@ DEFAULT_REQUEST_HEADERS = {
 # See (https://docs.scrapy.org/en/latest/topics/broad-crawls.html)
 
 SCHEDULER_PRIORITY_QUEUE = 'scrapy.pqueues.DownloaderAwarePriorityQueue'
-REACTOR_THREADPOOL_MAXSIZE = 30
+REACTOR_THREADPOOL_MAXSIZE = 40
 
 # go in breadth-first-order rather than depth first
 DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
-
-DEPTH_LIMIT = 10
 
 DOWNLOAD_TIMEOUT = 15
 RETRY_ENABLED = False
@@ -112,9 +110,10 @@ REDIRECT_MAX_TIMES = 10
 
 LOG_LEVEL = 'INFO'
 
-DB_BUFFER = 5
+DB_BUFFER = 100
 MONGO = {
     "URL": os.getenv("MONGODB_URL", "mongodb://127.0.0.1:27017"),
     "NAME": os.getenv("MONGODB_NAME", "db_name"),
-    "COLLECTION": os.getenv("MONGODB_COLLECTION", "collection_name")
+    "PAGES_COLLECTION": os.getenv("MONGODB_PAGES_COLLECTION", "pages"),
+    "IMAGES_COLLECTION": os.getenv("MONGODB_IMAGES_COLLECTION", "images")
 }

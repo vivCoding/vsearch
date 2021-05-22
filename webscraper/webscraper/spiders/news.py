@@ -2,14 +2,15 @@ import scrapy
 from webscraper.database import Database
 from webscraper.scrape import get_urls, get_content
 
-class W3Spider(scrapy.Spider):
+class NewsSpider(scrapy.Spider):
     name = "news"
 
     start_urls = [
         "https://www.nytimes.com",
+        "https://www.bbc.com",
+        "https://www.wsj.com",
         "https://www.cnn.com",
-        "https://www.washingtonpost.com",
-        "https://www.quora.com",
+        "https://www.quora.com/What-are-the-most-viewed-questions-on-Quora?share=1",
         "https://www.stackoverflow.com",
         "https://www.google.com",
         "https://www.wikipedia.org",
@@ -23,4 +24,4 @@ class W3Spider(scrapy.Spider):
         if response.status == 200:
             content = get_content(response)
             yield content
-            yield from response.follow_all(content["urls"], callback=self.parse)
+            # yield from response.follow_all(content["urls"], callback=self.parse)

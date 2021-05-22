@@ -12,7 +12,7 @@ import time
 
 class MongoPipeline:
     def open_spider(self, spider):
-        self.db_client = Database(MONGO["URL"], MONGO["NAME"], MONGO["COLLECTION"])
+        self.db_client = Database(MONGO["URL"], MONGO["NAME"], MONGO["PAGES_COLLECTION"])
         self.start_time = time.time()
         self.count = 0
     
@@ -28,4 +28,29 @@ class MongoPipeline:
 
     def process_item(self, item, spider):
         self.db_client.insert(item)
+        self.count += 1
+
+
+class WriteToFilePipeline:
+    def open_spider(self, spider):
+        self.file = open("output.txt")
+        self.urls = []
+        self.count = 0
+        self.start_time= time.time()
+
+    def close_spider(self, spider):
+        self.file.close()
+        print("\n")
+        print ("=" * 30)
+        print ("Time took:", time.time() - self.start_time)
+        print ("Total scraped:", self.count)
+        print ("Total docs:", len(self.urls))
+        print ("=" * 30, "\n")
+
+    def process_item(self, item, spider):
+        item["url"] = item["url"].rstrip('/').rstrip(' ')
+        url = item["url"]
+        if url not in self.urls:
+            self.file.write(str(item) + "\n")
+            self.urls.append(url)
         self.count += 1

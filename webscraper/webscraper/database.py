@@ -2,7 +2,7 @@ from pymongo import MongoClient
 import pymongo
 from webscraper.settings import DB_BUFFER
 
-# TODO: consider using the azure sql api instead of mongo api???
+# NOTE: consider using the azure sql api instead of mongo api???
 
 class Database:
     """Represents MongoDB database instance with convenient access functions"""
@@ -28,9 +28,9 @@ class Database:
         if len(self._buffer) >= self._max_buffer:
             self.push_to_db()
 
-    def query(self, query={}) -> list:
+    def query(self, query={}, projection={}) -> list:
         """Returns list of results from database based on query. Leave parameter blank to get all documents"""
-        query_result = list(self._collection.find(query))
+        query_result = list(self._collection.find(filter=query, projection=projection))
         return query_result
     
     def get_count(self, filters={}) -> int:
