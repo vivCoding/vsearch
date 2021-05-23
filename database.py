@@ -46,12 +46,15 @@ class Database:
         """Sends all dicts in buffer to the db
         Mongodb already deals with duplicate ids, thus why we don't need to worry about it
         """
+        # TODO: is there a way to add backlinks?
         try: self.collection.insert_many(self.buffer, ordered=False)
-        except Exception as e: pass
-        # might become useful later when updating webpages
-        # except pymongo.errors.BulkWriteError as e: pprint (e.details["writeErrors"][0])
+        except Exception as e:
+            # print (e)
+            pass
         # clears list (https://stackoverflow.com/questions/850795/different-ways-of-clearing-lists)
         self.buffer *= 0
+        # might become useful later when updating webpages
+        # except pymongo.errors.BulkWriteError as e: pprint (e.details["writeErrors"][0])
 
     def close_connection(self):
         try: Database.client.close()

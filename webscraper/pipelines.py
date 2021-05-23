@@ -6,7 +6,7 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
-from webscraper.database import Database
+from database import Database
 from webscraper.settings import MONGO, DB_BUFFER
 from webscraper.items import Page, Images
 import time
@@ -33,8 +33,8 @@ class MongoPipeline:
 
     def process_item(self, item, spider):
         if isinstance(item, Page):
-            item["url"] = item["_id"] = item["url"].rstrip('/').rstrip(' ')
             self.pages_db.insert(item)
         elif isinstance(item, Images):
             self.images_db.insert_many(item["images"])
+
         self.count += 1

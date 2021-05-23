@@ -1,6 +1,6 @@
 {
-    "_id": "website url",
-    "url": "website url",
+    "_id": "objectId",
+    "url": "unique_website_url",
     "title": "title",
     "description": "description",
     "keywords": [
@@ -11,5 +11,6 @@
         "url2/on/page",
         "url3/on/page"
     ],
+    "backlinks": [],
     "time": "yyyy-mm-dd hh:mm:ss:ms.msmsms"
 }
