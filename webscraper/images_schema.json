@@ -1,0 +1,6 @@
+{
+    "_id": "image_url",
+    "page_url": "page_containing_image",
+    "source": "image_url",
+    "alt": "image_alt_text"
+}

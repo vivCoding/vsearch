@@ -1,19 +1,39 @@
 from urllib.parse import urlparse
 from datetime import datetime
+from lxml import html
 
 def get_urls(response):
     # NOTE: scrapy already filters duplicate requests so dont need to worry about it
     try: hrefs = response.css("a::attr(href)").getall()
     except: return []
-    hrefs_to_crawl = []
+    urls = []
     for href in hrefs:
         href = response.urljoin(href).rstrip('/').rstrip(' ')
-        if urlparse(href).scheme in ["http", "https"]:
-            hrefs_to_crawl.append(href)
-    return hrefs_to_crawl
+        if urlparse(href).scheme in ["http", "https"] and href not in urls:
+            urls.append(href)
+    return urls
+
+def get_images(response):
+    # get images and src attribute. For now, alt text is considered related text
+    # TODO: hrefs might be potential images as well
+    try:
+        elements = response.css("img").getall()
+        images = []
+        for element in elements:
+            parsed = html.fromstring(element)
+            images.append({
+                "_id": parsed.attrib.get("src", "").rstrip('/').rstrip(' '),
+                "page_url": response.url,
+                "src": parsed.attrib.get("src", "").rstrip('/').rstrip(' '),
+                "alt": parsed.attrib.get("alt", ""),
+                "time": str(datetime.now())
+            })
+        return images
+    except:
+        return []
 
 def get_content(response):
-    # get title, description, keywords, and links
+    # get title, description, keywords, and other stuff
     try:
         title = response.css("title::text").get()
         # case insensitive
@@ -30,7 +50,6 @@ def get_content(response):
         keywords = []
         urls = []
     
-    # following schema found in ../schema.json
     return {
         "_id": response.url,
         "url": response.url,

@@ -2,17 +2,20 @@ import scrapy
 from webscraper.scrape import get_content, get_images
 from webscraper.items import Page, Images
 
-class QuotesSpider(scrapy.Spider):
-    name = "quotes"
+class NewsSpider(scrapy.Spider):
+    name = "misc"
 
     start_urls = [
-        "https://quotes.toscrape.com/",
-        "https://www.brainyquote.com/",
-        "https://www.barnesandnoble.com/"
+        "https://www.google.com",
+        "https://www.wikipedia.org",
+        "https://www.stackoverflow.com",
+        "https://www.w3schools.com",
+        "https://www.freecodecamp.org",
+        "https://www.quora.com/What-are-the-most-viewed-questions-on-Quora?share=1" # unknown to work
     ]
 
     def __init__(self):
-        super().__init__(name="quotes")
+        super().__init__(name="misc")
 
     def parse(self, response):
         if response.status == 200:

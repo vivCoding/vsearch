@@ -2,17 +2,15 @@ import scrapy
 from webscraper.scrape import get_content, get_images
 from webscraper.items import Page, Images
 
-class QuotesSpider(scrapy.Spider):
-    name = "quotes"
+class TestSpider(scrapy.Spider):
+    name = "test"
 
     start_urls = [
-        "https://quotes.toscrape.com/",
-        "https://www.brainyquote.com/",
-        "https://www.barnesandnoble.com/"
+        "https://www.nytimes.com",
     ]
 
     def __init__(self):
-        super().__init__(name="quotes")
+        super().__init__(name="test")
 
     def parse(self, response):
         if response.status == 200:
@@ -29,4 +27,4 @@ class QuotesSpider(scrapy.Spider):
             images = Images(images=get_images(response))
             yield page
             yield images
-            yield from response.follow_all(content["urls"], callback=self.parse)
+            # yield from response.follow_all(content["urls"], callback=self.parse)
