@@ -7,10 +7,12 @@
         "keyword1", "keyword2", "keyword3"
     ],
     "urls": [
-        "url1/on/page",
-        "url2/on/page",
-        "url3/on/page"
+        "forward_link_on_page",
+        "forward_link_on_page",
+        "forward_link_on_page"
     ],
-    "backlinks": [],
+    "backlinks": [
+        "url1", "url2", "url3"
+    ],
     "time": "yyyy-mm-dd hh:mm:ss:ms.msmsms"
 }

@@ -36,5 +36,4 @@ class MongoPipeline:
             self.pages_db.insert(item)
         elif isinstance(item, Images):
             self.images_db.insert_many(item["images"])
-
         self.count += 1

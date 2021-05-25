@@ -13,6 +13,8 @@ db.createCollection("pages_collection_name")
 db.createCollection("images_collection_name")
 db.pages_collection.createIndex({url: 1}, {name: "url", unique: true})
 db.images_collection.createIndex({src: 1}, {name: "src", unique: true})
+db.pages_collection.createIndex({time: 1}, {name: "time})
+db.pages.collection.createIndex({backlinks: 1}, {name: "backlinks"})
 ```
 Create `.env` in project root directory, and add info:
 ```

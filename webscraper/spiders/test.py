@@ -6,6 +6,7 @@ class TestSpider(scrapy.Spider):
 
     start_urls = [
         "https://www.nytimes.com",
+        "https://www.nytimes.com/section/opinion",
     ]
 
     def parse(self, response):

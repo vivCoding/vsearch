@@ -13,6 +13,7 @@ class Page(Item):
     description = Field()
     keywords = Field()
     urls = Field()
+    backlinks = Field()
     time = Field()
 
     def __init__(self, *args, **kwargs):

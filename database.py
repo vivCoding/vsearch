@@ -1,6 +1,8 @@
-from pymongo import MongoClient
+from pymongo import MongoClient, UpdateOne, ReplaceOne
+from pymongo.operations import UpdateMany
+from webscraper.items import Page, Image
 
-# NOTE: consider using the azure sql api instead of mongo api???
+# TODO: consider setting up schemas using pymongoose. Or not, since im lazy :)
 
 class Database:
     """Represents MongoDB database instance with convenient access functions"""
@@ -43,21 +45,50 @@ class Database:
         return self.collection.count_documents(filters)
 
     def push_to_db(self):
-        """Sends all dicts in buffer to the db
+        """Dumps everything from buffer to the db
         Mongodb already deals with duplicate ids, thus why we don't need to worry about it
         """
-        # TODO: is there a way to add backlinks?
-        try: self.collection.insert_many(self.buffer, ordered=False)
-        except Exception as e:
-            # print (e)
-            pass
-        # clears list (https://stackoverflow.com/questions/850795/different-ways-of-clearing-lists)
-        self.buffer *= 0
-        # might become useful later when updating webpages
-        # except pymongo.errors.BulkWriteError as e: pprint (e.details["writeErrors"][0])
+        if len(self.buffer) == 0: return
+        if isinstance(self.buffer[0], Page):
+            backlink_removal = []
+            # first, just in case we're updating an existing document, we remove the old backlinks
+            for doc in self.buffer:
+                backlink_removal.append(UpdateMany({"backlinks": doc["url"]}, {"$pull": {"backlinks": doc["url"]}}))
+            try: self.collection.bulk_write(backlink_removal, ordered=False)
+            except: pass
+            # NOTE: breaking up loop does run more loops, but it does result in less calls to the db
+            for doc in self.buffer:
+                try:
+                    # then, we take the new doc, and insert all the backlinks into the db
+                    self.collection.insert_many([Page(_id=url, url=url, backlinks=[doc["url"]]) for url in doc["urls"]], ordered=False)
+                except Exception as e:
+                    # if we have some that already in the db, simply push to their backlinks arrays
+                    dup_urls = [error["op"]["url"] for error in e.details["writeErrors"]]
+                    self.collection.update_many({"url": {"$in": dup_urls}}, {"$push": {"backlinks": doc["url"]}})
+            try:
+                # now push all new docs to the db
+                self.collection.insert_many(self.buffer, ordered=False)
+            except Exception as e:
+                # some docs already exist
+                dup_docs = [error["op"] for error in e.details["writeErrors"]]
+                docs_to_update = list(self.collection.find({"url": {"$in": [doc["url"] for doc in dup_docs]}}))
+                new_docs = []
+                for doc in dup_docs:
+                    for doc_to_update in docs_to_update:
+                        if doc["url"] == doc_to_update["url"]:
+                            if doc_to_update.get("title", None) is None:
+                                # if no content, this means that it's a doc with only backlinks. Add backlinks to the the new doc
+                                doc["backlinks"] = doc_to_update["backlinks"]
+                            # else, there's content, only need to replace old doc with new doc
+                            new_docs.append(ReplaceOne({"url": doc["url"]}, doc))
+                try: self.collection.bulk_write(new_docs, ordered=False)
+                except: pass
+            # clears list efficiently or something (https://stackoverflow.com/questions/850795/different-ways-of-clearing-lists)
+            self.buffer *= 0
+        else:
+            try: self.collection.insert_many(self.buffer, ordered=False)
+            except: pass
 
     def close_connection(self):
         try: Database.client.close()
         except: pass
-
-    
