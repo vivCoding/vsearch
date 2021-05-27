@@ -7,14 +7,14 @@
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 from database import Database
-from webscraper.settings import MONGO, DB_BUFFER
-from webscraper.items import Page, Images
+from webscraper.settings import MONGO, DB_BUFFER_SIZE
+from webscraper.items import Page, Image, Images
 import time
 
 class MongoPipeline:
     def open_spider(self, spider):
-        self.pages_db = Database(MONGO["NAME"], MONGO["PAGES_COLLECTION"], connection=MONGO["URL"], db_buffer_size=DB_BUFFER)
-        self.images_db = Database(MONGO["NAME"], MONGO["IMAGES_COLLECTION"], connection=MONGO["URL"], db_buffer_size=DB_BUFFER)
+        self.pages_db = Database(MONGO["NAME"], MONGO["PAGES_COLLECTION"], connection=MONGO["URL"], db_item_type=Page, db_buffer_size=DB_BUFFER_SIZE)
+        self.images_db = Database(MONGO["NAME"], MONGO["IMAGES_COLLECTION"], connection=MONGO["URL"], db_item_type=Image, db_buffer_size=DB_BUFFER_SIZE)
         self.start_time = time.time()
         self.count = 0
     

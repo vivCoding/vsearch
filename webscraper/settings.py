@@ -24,12 +24,13 @@ NEWSPIDER_MODULE = 'webscraper.spiders'
 ROBOTSTXT_OBEY = True
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 150
+CONCURRENT_REQUESTS = 100
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 3
+# TODO: uncomment this
+# DOWNLOAD_DELAY = 2
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -96,14 +97,15 @@ ITEM_PIPELINES = {
 # See (https://docs.scrapy.org/en/latest/topics/broad-crawls.html)
 
 SCHEDULER_PRIORITY_QUEUE = 'scrapy.pqueues.DownloaderAwarePriorityQueue'
-REACTOR_THREADPOOL_MAXSIZE = 40
+REACTOR_THREADPOOL_MAXSIZE = 30
 
 # go in breadth-first-order rather than depth first
 DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
-# DEPTH_LIMIT = 30
+# TODO: comment this
+DEPTH_LIMIT = 1
 
 DOWNLOAD_TIMEOUT = 15
 RETRY_ENABLED = False
@@ -112,7 +114,11 @@ REDIRECT_MAX_TIMES = 10
 
 LOG_LEVEL = 'INFO'
 
-DB_BUFFER = 100
+# Custom dupe filter
+DUPEFILTER_CLASS = 'webscraper.middlewares.DupeFilter'
+
+DB_BUFFER_SIZE = 100
+DB_UPLOAD_DELAY = 0.1
 MONGO = {
     "URL": os.getenv("MONGODB_URL", "mongodb://127.0.0.1:27017"),
     "NAME": os.getenv("MONGODB_NAME", "db_name"),

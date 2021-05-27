@@ -3,11 +3,30 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-from scrapy import signals
-
+from webscraper.scrape import format_url
+from pymongo.operations import UpdateOne
+from database import Database
 # useful for handling different item types with a single interface
-from itemadapter import is_item, ItemAdapter
+from itemadapter import ItemAdapter, is_item
+from scrapy import signals
+from scrapy.dupefilters import RFPDupeFilter
+from webscraper.settings import MONGO, DB_BUFFER_SIZE
 
+class DupeFilter(RFPDupeFilter):
+    def __init__(self, path, debug):
+        super().__init__(path=path, debug=debug)
+        self.pages_db = Database(MONGO["NAME"], MONGO["PAGES_COLLECTION"], 
+                connection=MONGO["URL"], db_item_type=UpdateOne, db_buffer_size=DB_BUFFER_SIZE)
+
+    def request_seen(self, request):
+        seen =  super().request_seen(request)
+        if seen:
+            self.pages_db.insert(UpdateOne({"url": format_url(request.url)}, {"$push": {"backlinks": request.meta.get("backlink")}}))
+        return seen
+
+    def close(self, reason):
+        self.pages_db.push_to_db()
+        return super().close(reason)
 
 class WebscraperSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
@@ -54,7 +73,6 @@ class WebscraperSpiderMiddleware:
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
-
 
 class WebscraperDownloaderMiddleware:
     # Not all methods need to be defined. If a method is not defined,

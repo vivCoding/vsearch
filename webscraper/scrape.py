@@ -8,10 +8,14 @@ def get_urls(response):
     try: hrefs = response.css("a::attr(href)").getall()
     except: return []
     urls = []
+    accepted_schemas = ["http", "https"]
     for href in hrefs:
-        href = format_url(response.urljoin(href))
-        if urlparse(href).scheme in ["http", "https"] and href not in urls:
+        if urlparse(href).scheme in accepted_schemas and href not in urls:
             urls.append(href)
+        else:
+            href = format_url(response.urljoin(href))
+            if urlparse(href).scheme in accepted_schemas and href not in urls:
+                urls.append(href)
     return urls
 
 def get_images(response):
@@ -45,13 +49,17 @@ def get_content(response):
         title = ""
         description = ""
         keywords = []
-    
+
+    backlink = response.meta.get("backlink", None)
+    backlinks = [format_url(backlink)] if backlink else []
+
     return Page(
         url = format_url(response.url),
         title = title,
         description = description,
         keywords = keywords,
-        urls = get_urls(response)
+        urls = get_urls(response),
+        backlinks = backlinks
     )
 
 def format_url(url):
