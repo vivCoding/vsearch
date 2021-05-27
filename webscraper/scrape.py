@@ -4,7 +4,6 @@ from webscraper.items import Page, Image, Images
 import re
 
 def get_urls(response):
-    # NOTE: scrapy already filters duplicate requests so dont need to worry about it
     try: hrefs = response.css("a::attr(href)").getall()
     except: return []
     urls = []

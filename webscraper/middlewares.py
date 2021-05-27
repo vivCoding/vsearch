@@ -20,8 +20,14 @@ class DupeFilter(RFPDupeFilter):
 
     def request_seen(self, request):
         seen =  super().request_seen(request)
-        if seen:
-            self.pages_db.insert(UpdateOne({"url": format_url(request.url)}, {"$push": {"backlinks": request.meta.get("backlink")}}))
+        # we catch duplicates here, as Scrapy filters duplicates automatically here
+        if seen and request.meta.get("backlink", None):
+            self.pages_db.insert(
+                UpdateOne(
+                    {"url": format_url(request.url)},
+                    {"$push": {"backlinks": format_url(request.meta.get("backlink"))}}
+                )
+            )
         return seen
 
     def close(self, reason):
