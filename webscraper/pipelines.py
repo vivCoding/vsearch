@@ -6,7 +6,7 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
-from database import Database
+from webscraper.crawler_database import CrawlerDatabase as Database
 from webscraper.settings import MONGO, DB_BUFFER_SIZE
 from webscraper.items import Page, Image, Images
 import time

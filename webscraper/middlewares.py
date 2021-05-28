@@ -3,14 +3,14 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-from webscraper.scrape import format_url
-from pymongo.operations import UpdateOne
-from database import Database
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter, is_item
 from scrapy import signals
 from scrapy.dupefilters import RFPDupeFilter
 from webscraper.settings import MONGO, DB_BUFFER_SIZE
+from webscraper.scrape import format_url
+from pymongo.operations import UpdateOne
+from webscraper.crawler_database import CrawlerDatabase as Database
 
 class DupeFilter(RFPDupeFilter):
     def __init__(self, path, debug):
@@ -25,7 +25,7 @@ class DupeFilter(RFPDupeFilter):
             self.pages_db.insert(
                 UpdateOne(
                     {"url": format_url(request.url)},
-                    {"$push": {"backlinks": format_url(request.meta.get("backlink"))}}
+                    {"$addToSet": {"backlinks": format_url(request.meta.get("backlink"))}}
                 )
             )
         return seen
