@@ -10,7 +10,7 @@ def get_urls(response):
     accepted_schemas = ["http", "https"]
     for href in hrefs:
         if urlparse(href).scheme in accepted_schemas and href not in urls:
-            urls.append(href)
+            urls.append(format_url(href))
         else:
             href = format_url(response.urljoin(href))
             if urlparse(href).scheme in accepted_schemas and href not in urls:
@@ -63,6 +63,11 @@ def get_content(response):
 
 def format_url(url):
     return url.rstrip("/").strip(" ")
+
+# NOTE: removing fragments affects the way Scrapy identifies duplicate urls/fingerprints.
+# # Best to use it when not crawling url
+def remove_fragments(url):
+    return format_url(url.split("#")[0])
 
 def format_text(text):
     # get rid of all new lines, then delete redundant spaces

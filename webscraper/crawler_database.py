@@ -1,9 +1,15 @@
 from pymongo import MongoClient
-from webscraper.items import Page, Image
 from database import Database
+from webscraper.settings import MONGO, DB_BUFFER_SIZE, DB_UPLOAD_DELAY
 
-class CrawlerDatabase(Database):
-    """Represents MongoDB database instance with convenient access functions
+class Types:
+    PAGE = "page"
+    IMAGE = "image"
+    WRITE_OPERATION = "write"
+
+
+class CrawlerConnection(Database):
+    """Represents MongoDB database connection with convenient access functions (specifically for spiders)
 
     :param database_name: the name of database to use
     :type: str
@@ -15,7 +21,7 @@ class CrawlerDatabase(Database):
     :type: str
     
     :param db_item_type: the type of items that will be inserted into the database
-    :type: class
+    :type: class Types
     
     :param db_buffer_size: how many items the database will store locally until it dumps to the database
     :type: int
@@ -24,8 +30,8 @@ class CrawlerDatabase(Database):
     :type: int
     """
 
-    # static variable, connect to mongodb only once
-    client = None
+    # static variable that stores one mongodb client per url. Tracks how many connections per url
+    connections = {}
 
     def __init__(
         self, 
@@ -37,9 +43,17 @@ class CrawlerDatabase(Database):
         db_upload_delay=0
     ) -> None:
         """Setup MongoDB with connection. Get documents from collection in database"""
-        if CrawlerDatabase.client is None:
-            CrawlerDatabase.client = MongoClient(connection)
-        self.database = CrawlerDatabase.client[database_name]
+        if CrawlerConnection.connections.get(connection, None) is None:
+            CrawlerConnection.connections[connection] = {
+                "client": MongoClient(connection),
+                "total": 1
+            }
+            print ("- Connected to database")
+        else:
+            CrawlerConnection.connections[connection]["total"] += 1
+            print ("- Ignoring duplicate connection client")
+        self.connection = connection
+        self.database = CrawlerConnection.connections[self.connection]["client"][database_name]
         self.collection = self.database[collection_name]
         self.item_type = db_item_type
         self.buffer = []
@@ -49,16 +63,61 @@ class CrawlerDatabase(Database):
     def push_to_db(self):
         """Dumps everything from buffer to the db"""
         if len(self.buffer) == 0: return
-        if self.item_type == Page or self.item_type == Image:
+        if self.item_type == Types.WRITE_OPERATION:
+            self.collection.bulk_write(self.buffer, ordered=False)
+            urls = list(set([op._filter["url"] for op in self.buffer]))
+            # print ("- urls", urls)
+            urls_already_in = [doc["url"] for doc in self.query({"url": {"$in": urls}}, {"_id": 0, "url": 1})]
+            # print("- already in", urls_already_in)
+            if len(urls) - len(urls_already_in) != 0:
+                self.buffer = [op for op in self.buffer if op._filter["url"] not in urls_already_in]
+            else: self.buffer *= 0
+            # print ("- new buffer", [op._filter["url"] for op in self.buffer])
+        else:
             try: self.collection.insert_many(self.buffer, ordered=False)
             except Exception as e: pass
-        else:
-            self.collection.bulk_write(self.buffer, ordered=False)
-        self.buffer *= 0
+            self.buffer *= 0
 
     def close_connection(self):
-        try: Database.client.close()
-        except: pass
+        """Removes this connection from client. If client has no more connections, close it"""
+        if CrawlerConnection.connections.get(self.connection):
+            CrawlerConnection.connections[self.connection]["total"] -= 1
+            if CrawlerConnection.connections[self.connection]["total"] <= 0:
+                try:
+                    CrawlerConnection.connections[self.connection]["client"].close()
+                    print ('- fully disconnected')
+                except: pass
+                del CrawlerConnection.connections[self.connection]
+            else: print ("- still have", CrawlerConnection.connections[self.connection]["total"], "connections left")
+
+
+class CrawlerDB():
+    """Stores all database connections for crawlers"""
+    __instance = None
+
+    pages_db = CrawlerConnection(MONGO["NAME"], MONGO["PAGES_COLLECTION"], MONGO["URL"],
+                    Types.PAGE, DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
+    images_db = CrawlerConnection(MONGO["NAME"], MONGO["IMAGES_COLLECTION"], MONGO["URL"],
+                    Types.IMAGE, DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
+    writes_db = CrawlerConnection(MONGO["NAME"], MONGO["PAGES_COLLECTION"], MONGO["URL"],
+                    Types.WRITE_OPERATION, DB_BUFFER_SIZE * 3, DB_UPLOAD_DELAY)
+
+    def __new__(cls):
+        if cls.__instance is None:
+            cls.__instance = object.__new__(cls)
+        return cls.__instance
+
+    @staticmethod
+    def close_connections():
+        """Closes all connections in an ordered manner"""
+        if CrawlerDB.pages_db is not None:
+            CrawlerDB.pages_db.push_to_db()
+            CrawlerDB.images_db.push_to_db()
+            CrawlerDB.writes_db.push_to_db()
+            CrawlerDB.pages_db.close_connection()
+            CrawlerDB.images_db.close_connection()
+            CrawlerDB.writes_db.close_connection()
+
 
 # NOTE: this code might become useful in the future when we encounter duplicate, but new docs
 # Does not currently work, as it can accidentally completely replace docs that had backlinks in them before

@@ -6,32 +6,32 @@
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter, is_item
 from scrapy import signals
+from webscraper.crawler_database import CrawlerDB
 from scrapy.dupefilters import RFPDupeFilter
-from webscraper.settings import MONGO, DB_BUFFER_SIZE
-from webscraper.scrape import format_url
+from webscraper.scrape import format_url, remove_fragments
 from pymongo.operations import UpdateOne
-from webscraper.crawler_database import CrawlerDatabase as Database
 
 class DupeFilter(RFPDupeFilter):
     def __init__(self, path, debug):
         super().__init__(path=path, debug=debug)
-        self.pages_db = Database(MONGO["NAME"], MONGO["PAGES_COLLECTION"], 
-                connection=MONGO["URL"], db_item_type=UpdateOne, db_buffer_size=DB_BUFFER_SIZE)
+        self.write_db = CrawlerDB.writes_db
 
     def request_seen(self, request):
         seen =  super().request_seen(request)
         # we catch duplicates here, as Scrapy filters duplicates automatically here
+        # if seen:
+        #     print ("-", format_url(request.url))
         if seen and request.meta.get("backlink", None):
-            self.pages_db.insert(
+            self.write_db.insert(
                 UpdateOne(
-                    {"url": format_url(request.url)},
+                    {"url": remove_fragments(format_url(request.url))},
                     {"$addToSet": {"backlinks": format_url(request.meta.get("backlink"))}}
                 )
             )
         return seen
 
     def close(self, reason):
-        self.pages_db.push_to_db()
+        CrawlerDB.close_connections()
         return super().close(reason)
 
 class WebscraperSpiderMiddleware:
