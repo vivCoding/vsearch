@@ -1,4 +1,4 @@
-from pymongo import MongoClient
+from pymongo import MongoClient, ReplaceOne
 from database import Database
 from webscraper.settings import MONGO, DB_BUFFER_SIZE, DB_UPLOAD_DELAY
 
@@ -33,8 +33,6 @@ class CrawlerConnection(Database):
     # static variable that stores one mongodb client per url. Tracks how many connections per url
     connections = {}
 
-    # TODO: make buffers keep state when pausing/resuming jobs
-
     def __init__(
         self, 
         database_name,
@@ -66,19 +64,30 @@ class CrawlerConnection(Database):
         """Dumps everything from buffer to the db"""
         if len(self.buffer) == 0: return
         if self.item_type == Types.WRITE_OPERATION:
-            self.collection.bulk_write(self.buffer, ordered=False)
-            # some write operations may not work because the pages_buffer hasn't been pushed yet (they go at different rates)
-            # thus, we keep the write operations that haven't updated/wrote any new docs in the buffer
-            urls = list(set([op._filter["url"] for op in self.buffer]))
-            urls_already_in = [doc["url"] for doc in self.query({"url": {"$in": urls}}, {"_id": 0, "url": 1})]
-            if len(urls) - len(urls_already_in) != 0:
-                self.buffer = [op for op in self.buffer if op._filter["url"] not in urls_already_in]
-                self.max_buffer += int(len(self.buffer) / 4)
-            else: self.buffer *= 0
+            try: self.collection.bulk_write(self.buffer, ordered=False)
+            except Exception as e: pass
         else:
             try: self.collection.insert_many(self.buffer, ordered=False)
-            except Exception as e: pass
-            self.buffer *= 0
+            except Exception as e:
+                if self.item_type == Types.PAGE:
+                    # some write operations may not work because the pages_buffer hasn't been pushed yet (they go at different rates)
+                    # they are upsert operations, meaning that the docs in database aren't complete. We should update them to include content
+                    # NOTE: we don't handle docs that happen to have same url but different content (yet)
+                    dup_docs = [error["op"] for error in e.details["writeErrors"]]
+                    docs_to_update = self.query({"url": {"$in": [doc["url"] for doc in dup_docs]}}, {"_id": 0, "url": 1, "title": 1, "backlinks": 1})
+                    replace_docs = []
+                    for doc in dup_docs:
+                        for doc_to_update in docs_to_update:
+                            if doc["url"] == doc_to_update["url"] and doc_to_update.get("title", None) is None:
+                                try:
+                                    doc["backlinks"] += doc_to_update["backlinks"]
+                                    doc["backlinks"] = list(set(doc["backlinks"]))
+                                    replace_docs.append(ReplaceOne({"url": doc["url"]}, doc))
+                                except: pass
+                    try: self.collection.bulk_write(replace_docs, ordered=False)
+                    except: pass
+                else: pass
+        self.buffer *= 0
 
     def close_connection(self):
         """Removes this connection from client. If client has no more connections, close it"""
@@ -99,12 +108,9 @@ class CrawlerDB():
     """
     __instance = None
 
-    pages_db = CrawlerConnection(MONGO["NAME"], MONGO["PAGES_COLLECTION"], MONGO["URL"],
-                    Types.PAGE, DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
-    images_db = CrawlerConnection(MONGO["NAME"], MONGO["IMAGES_COLLECTION"], MONGO["URL"],
-                    Types.IMAGE, DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
-    writes_db = CrawlerConnection(MONGO["NAME"], MONGO["PAGES_COLLECTION"], MONGO["URL"],
-                    Types.WRITE_OPERATION, DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
+    pages_db = CrawlerConnection(MONGO["NAME"], MONGO["PAGES_COLLECTION"], MONGO["URL"], Types.PAGE, DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
+    images_db = CrawlerConnection(MONGO["NAME"], MONGO["IMAGES_COLLECTION"], MONGO["URL"], Types.IMAGE, DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
+    writes_db = CrawlerConnection(MONGO["NAME"], MONGO["PAGES_COLLECTION"], MONGO["URL"], Types.WRITE_OPERATION, DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
 
     def __new__(cls):
         if cls.__instance is None:
@@ -121,19 +127,3 @@ class CrawlerDB():
             CrawlerDB.pages_db.close_connection()
             CrawlerDB.images_db.close_connection()
             CrawlerDB.writes_db.close_connection()
-
-
-# NOTE: this code might become useful in the future when we encounter duplicate, but new docs
-# Does not currently work, as it can accidentally completely replace docs that had backlinks in them before
-# When there's duplicate docs, scrapy does not follow them, therefore the backlinks in doc["urls"] won't get updated
-#
-# dup_docs = [error["op"] for error in e.details["writeErrors"]]
-# backlinks_removal = []
-# new_docs = []
-# for doc in dup_docs:
-#     backlinks_removal.append(UpdateMany({"backlinks": doc["url"]}, {"$pull": {"backlinks": doc["url"]}}))
-#     new_docs.append(ReplaceOne({"url": doc["url"]}, doc))
-# try:
-#     self.collection.bulk_write(backlinks_removal, ordered=False)
-#     self.collection.bulk_write(new_docs, ordered=False)
-# except: pass

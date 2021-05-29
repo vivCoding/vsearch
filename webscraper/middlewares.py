@@ -21,10 +21,12 @@ class DupeFilter(RFPDupeFilter):
         # This is one way we can catch duplicates, as Scrapy filters duplicates automatically here.
         # If we see we have encountered the same url/fingerprint, update backlinks
         if seen and request.meta.get("backlink", None):
+            url = remove_fragments(format_url(request.url))
             self.write_db.insert(
                 UpdateOne(
-                    {"url": remove_fragments(format_url(request.url))},
-                    {"$addToSet": {"backlinks": format_url(request.meta.get("backlink"))}}
+                    {"_id": url, "url": url},
+                    {"$addToSet": {"backlinks": format_url(request.meta.get("backlink"))}},
+                    upsert=True
                 )
             )
         return seen

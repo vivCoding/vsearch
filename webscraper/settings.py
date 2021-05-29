@@ -105,17 +105,17 @@ SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
 # DEPTH_LIMIT = 2
 
-DOWNLOAD_TIMEOUT = 15
+DOWNLOAD_TIMEOUT = 10
 RETRY_ENABLED = False
 REDIRECT_ENABLED = True
-REDIRECT_MAX_TIMES = 5
+REDIRECT_MAX_TIMES = 3
 
 LOG_LEVEL = 'INFO'
 
 # Custom dupe filter
 DUPEFILTER_CLASS = 'webscraper.middlewares.DupeFilter'
 
-DB_BUFFER_SIZE = 1000
+DB_BUFFER_SIZE = 500
 DB_UPLOAD_DELAY = 0
 MONGO = {
     "URL": os.getenv("MONGODB_URL", "mongodb://127.0.0.1:27017"),
