@@ -104,7 +104,7 @@ class CrawlerDB():
     images_db = CrawlerConnection(MONGO["NAME"], MONGO["IMAGES_COLLECTION"], MONGO["URL"],
                     Types.IMAGE, DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
     writes_db = CrawlerConnection(MONGO["NAME"], MONGO["PAGES_COLLECTION"], MONGO["URL"],
-                    Types.WRITE_OPERATION, DB_BUFFER_SIZE * 3, DB_UPLOAD_DELAY)
+                    Types.WRITE_OPERATION, DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
 
     def __new__(cls):
         if cls.__instance is None:

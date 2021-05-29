@@ -7,7 +7,7 @@ class QuotesSpider(scrapy.Spider):
     start_urls = [
         "https://quotes.toscrape.com/",
         "https://www.brainyquote.com/",
-        "https://www.barnesandnoble.com/"
+        "https://www.barnesandnoble.com/",
     ]
 
     def parse(self, response):

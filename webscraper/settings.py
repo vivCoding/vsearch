@@ -24,13 +24,12 @@ NEWSPIDER_MODULE = 'webscraper.spiders'
 ROBOTSTXT_OBEY = True
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 100
+CONCURRENT_REQUESTS = 200
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-# TODO: uncomment this
-# DOWNLOAD_DELAY = 1.75
+DOWNLOAD_DELAY = 0
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -76,7 +75,7 @@ ITEM_PIPELINES = {
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
 AUTOTHROTTLE_ENABLED = True
 # The initial download delay
-AUTOTHROTTLE_START_DELAY = 0.05
+AUTOTHROTTLE_START_DELAY = 0.02
 # The maximum download delay to be set in case of high latencies
 AUTOTHROTTLE_MAX_DELAY = 3
 # The average number of requests Scrapy should be sending in parallel to
@@ -97,27 +96,26 @@ AUTOTHROTTLE_TARGET_CONCURRENCY = 20
 # See (https://docs.scrapy.org/en/latest/topics/broad-crawls.html)
 
 SCHEDULER_PRIORITY_QUEUE = 'scrapy.pqueues.DownloaderAwarePriorityQueue'
-REACTOR_THREADPOOL_MAXSIZE = 30
+REACTOR_THREADPOOL_MAXSIZE = 40
 
 # go in breadth-first-order rather than depth first
 DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
-# TODO: comment this
 # DEPTH_LIMIT = 2
 
 DOWNLOAD_TIMEOUT = 15
 RETRY_ENABLED = False
-REDIRECT_ENABLED = True
-REDIRECT_MAX_TIMES = 10
+REDIRECT_ENABLED = False
+# REDIRECT_MAX_TIMES = 10
 
 LOG_LEVEL = 'INFO'
 
 # Custom dupe filter
 DUPEFILTER_CLASS = 'webscraper.middlewares.DupeFilter'
 
-DB_BUFFER_SIZE = 100
+DB_BUFFER_SIZE = 1000
 DB_UPLOAD_DELAY = 0
 MONGO = {
     "URL": os.getenv("MONGODB_URL", "mongodb://127.0.0.1:27017"),

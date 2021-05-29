@@ -7,7 +7,7 @@ class NewsSpider(scrapy.Spider):
     start_urls = [
         "https://www.nytimes.com",
         "https://www.bbc.com",
-        "https://www.wsj.com", # unknown to work
+        "https://www.cbsnews.com/",
         "https://www.cnn.com",
         "https://weather.com",
         "https://www.yahoo.com"

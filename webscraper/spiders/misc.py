@@ -10,7 +10,7 @@ class NewsSpider(scrapy.Spider):
         "https://www.stackoverflow.com",
         "https://www.w3schools.com",
         "https://www.freecodecamp.org",
-        "https://www.quora.com/What-are-the-most-viewed-questions-on-Quora?share=1" # unknown to work
+        "https://www.espn.com",
     ]
 
     def parse(self, response):
