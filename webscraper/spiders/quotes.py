@@ -16,4 +16,10 @@ class QuotesSpider(scrapy.Spider):
             images = get_images(response)
             yield content
             yield images
-            yield from response.follow_all(content["urls"], callback=self.parse)
+            yield from response.follow_all(
+                content["urls"],
+                callback = self.parse,
+                meta = {
+                    "backlink": response.url
+                }
+            )

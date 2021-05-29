@@ -32,7 +32,7 @@ def get_images(response):
             ))
         return Images(images=images)
     except:
-        return []
+        return Images(images=[])
 
 def get_content(response):
     # get title, description, keywords, and other stuff
