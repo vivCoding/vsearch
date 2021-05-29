@@ -18,9 +18,8 @@ class DupeFilter(RFPDupeFilter):
 
     def request_seen(self, request):
         seen =  super().request_seen(request)
-        # we catch duplicates here, as Scrapy filters duplicates automatically here
-        # if seen:
-        #     print ("-", format_url(request.url))
+        # This is one way we can catch duplicates, as Scrapy filters duplicates automatically here.
+        # If we see we have encountered the same url/fingerprint, update backlinks
         if seen and request.meta.get("backlink", None):
             self.write_db.insert(
                 UpdateOne(

@@ -105,7 +105,7 @@ SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
 # TODO: comment this
-DEPTH_LIMIT = 2
+# DEPTH_LIMIT = 2
 
 DOWNLOAD_TIMEOUT = 15
 RETRY_ENABLED = False

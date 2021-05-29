@@ -33,6 +33,8 @@ class CrawlerConnection(Database):
     # static variable that stores one mongodb client per url. Tracks how many connections per url
     connections = {}
 
+    # TODO: make buffers keep state when pausing/resuming jobs
+
     def __init__(
         self, 
         database_name,
@@ -65,14 +67,14 @@ class CrawlerConnection(Database):
         if len(self.buffer) == 0: return
         if self.item_type == Types.WRITE_OPERATION:
             self.collection.bulk_write(self.buffer, ordered=False)
+            # some write operations may not work because the pages_buffer hasn't been pushed yet (they go at different rates)
+            # thus, we keep the write operations that haven't updated/wrote any new docs in the buffer
             urls = list(set([op._filter["url"] for op in self.buffer]))
-            # print ("- urls", urls)
             urls_already_in = [doc["url"] for doc in self.query({"url": {"$in": urls}}, {"_id": 0, "url": 1})]
-            # print("- already in", urls_already_in)
             if len(urls) - len(urls_already_in) != 0:
                 self.buffer = [op for op in self.buffer if op._filter["url"] not in urls_already_in]
+                self.max_buffer += int(len(self.buffer) / 4)
             else: self.buffer *= 0
-            # print ("- new buffer", [op._filter["url"] for op in self.buffer])
         else:
             try: self.collection.insert_many(self.buffer, ordered=False)
             except Exception as e: pass
@@ -92,7 +94,9 @@ class CrawlerConnection(Database):
 
 
 class CrawlerDB():
-    """Stores all database connections for crawlers"""
+    """Stores all database connections for crawlers
+    Static variables, follow singleton pattern
+    """
     __instance = None
 
     pages_db = CrawlerConnection(MONGO["NAME"], MONGO["PAGES_COLLECTION"], MONGO["URL"],
