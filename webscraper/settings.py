@@ -75,12 +75,12 @@ ITEM_PIPELINES = {
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
 AUTOTHROTTLE_ENABLED = True
 # The initial download delay
-AUTOTHROTTLE_START_DELAY = 0.02
+AUTOTHROTTLE_START_DELAY = 0
 # The maximum download delay to be set in case of high latencies
 AUTOTHROTTLE_MAX_DELAY = 3
 # The average number of requests Scrapy should be sending in parallel to
 # each remote server
-AUTOTHROTTLE_TARGET_CONCURRENCY = 20
+AUTOTHROTTLE_TARGET_CONCURRENCY = 30
 # Enable showing throttling stats for every response received:
 #AUTOTHROTTLE_DEBUG = False
 
@@ -103,9 +103,10 @@ DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
-# DEPTH_LIMIT = 2
+DEPTH_LIMIT = 2
+CONCURRENT_ITEMS = 200
 
-DOWNLOAD_TIMEOUT = 10
+DOWNLOAD_TIMEOUT = 15
 RETRY_ENABLED = False
 REDIRECT_ENABLED = True
 REDIRECT_MAX_TIMES = 3
@@ -121,5 +122,6 @@ MONGO = {
     "URL": os.getenv("MONGODB_URL", "mongodb://127.0.0.1:27017"),
     "NAME": os.getenv("MONGODB_NAME", "db_name"),
     "PAGES_COLLECTION": os.getenv("MONGODB_PAGES_COLLECTION", "pages"),
-    "IMAGES_COLLECTION": os.getenv("MONGODB_IMAGES_COLLECTION", "images")
+    "IMAGES_COLLECTION": os.getenv("MONGODB_IMAGES_COLLECTION", "images"),
+    "TOKENS_COLLECTION": os.getenv("MONGODB_TOKENS_COLLECTION", "tokens")
 }

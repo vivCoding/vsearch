@@ -13,6 +13,7 @@ class Page(Item):
     description = Field()
     keywords = Field()
     urls = Field()
+    words = Field()
     backlinks = Field()
     time = Field()
 

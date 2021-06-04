@@ -34,8 +34,8 @@ def get_images(response):
     except:
         return Images(images=[])
 
-def get_content(response):
-    # get title, description, keywords, and other stuff
+def get_head(response):
+    # get title, description, keyword (stuff found in the head tag)
     try:
         title = format_text(response.css("title::text").get())
         # case insensitive
@@ -49,15 +49,40 @@ def get_content(response):
         description = ""
         keywords = []
 
+    return {
+        "title": title,
+        "description": description,
+        "keywords": keywords,
+    }
+
+def get_words(response):
+    # returns a list of words in whole document
+    try:
+        response_text = response.text.replace("</", " </")
+        doc = html.fromstring(response_text)
+        # remove extra bad tags
+        for bad in doc.cssselect("script, style"):
+            bad.getparent().remove(bad)
+        words = re.sub(" +", " ", re.sub("([^\w\s])", " ", doc.text_content().replace("\n", " "). replace("\t", " "))).strip(" ").split(" ")
+        return words
+    except:
+        return []
+
+def get_content(response):
+    head = get_head(response)
+    urls = get_urls(response)
+    words = get_words(response)
+    # get backlink
     backlink = response.meta.get("backlink", None)
     backlinks = [format_url(backlink)] if backlink else []
 
     return Page(
         url = format_url(response.url),
-        title = title,
-        description = description,
-        keywords = keywords,
-        urls = get_urls(response),
+        title = head["title"],
+        description = head["description"],
+        keywords = head["keywords"],
+        words = words,
+        urls = urls,
         backlinks = backlinks
     )
 

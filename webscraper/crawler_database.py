@@ -1,4 +1,6 @@
+from typing import Type
 from pymongo import MongoClient, ReplaceOne
+from pymongo.operations import UpdateOne
 from database import Database
 from webscraper.settings import MONGO, DB_BUFFER_SIZE, DB_UPLOAD_DELAY
 
@@ -6,6 +8,7 @@ class Types:
     PAGE = "page"
     IMAGE = "image"
     WRITE_OPERATION = "write"
+    TOKENS = "tokens"
 
 
 class CrawlerConnection(Database):
@@ -66,7 +69,7 @@ class CrawlerConnection(Database):
         if self.item_type == Types.WRITE_OPERATION:
             try: self.collection.bulk_write(self.buffer, ordered=False)
             except Exception as e: pass
-        else:
+        elif self.item_type == Types.PAGE or self.item_type == Types.IMAGE:
             try: self.collection.insert_many(self.buffer, ordered=False)
             except Exception as e:
                 if self.item_type == Types.PAGE:
@@ -87,6 +90,31 @@ class CrawlerConnection(Database):
                     try: self.collection.bulk_write(replace_docs, ordered=False)
                     except: pass
                 else: pass
+        elif self.item_type == Types.TOKENS:
+            # TODO: add count
+            tokens = {}
+            for token_doc in self.buffer:
+                for token in token_doc["tokens"]:
+                    if not tokens.get(token, None):
+                        tokens[token] = {
+                            "token": token,
+                            "urls": [token_doc["url"]]
+                        }
+                    else:
+                        tokens[token]["urls"].append(token_doc["url"])
+            tokens = list(tokens.values())
+            try:
+                tokens_to_write = []
+                for token in tokens:
+                    tokens_to_write.append(UpdateOne(
+                        {"_id": token["token"], "token": token["token"]},
+                        {"$addToSet": {"urls": {"$each": token["urls"]}}},
+                        upsert=True
+                    ))
+                self.collection.bulk_write(tokens_to_write, ordered=False)
+            except Exception as e:
+                print ("bad")
+                pass
         self.buffer *= 0
 
     def close_connection(self):
@@ -111,6 +139,7 @@ class CrawlerDB():
     pages_db = CrawlerConnection(MONGO["NAME"], MONGO["PAGES_COLLECTION"], MONGO["URL"], Types.PAGE, DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
     images_db = CrawlerConnection(MONGO["NAME"], MONGO["IMAGES_COLLECTION"], MONGO["URL"], Types.IMAGE, DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
     writes_db = CrawlerConnection(MONGO["NAME"], MONGO["PAGES_COLLECTION"], MONGO["URL"], Types.WRITE_OPERATION, DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
+    tokens_db = CrawlerConnection(MONGO["NAME"], MONGO["TOKENS_COLLECTION"], MONGO["URL"], Types.TOKENS, DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
 
     def __new__(cls):
         if cls.__instance is None:
@@ -119,11 +148,42 @@ class CrawlerDB():
 
     @staticmethod
     def close_connections():
-        """Closes all connections in an ordered manner"""
+        """Closes all connections in an ORDERED manner"""
         if CrawlerDB.pages_db is not None:
             CrawlerDB.pages_db.push_to_db()
             CrawlerDB.images_db.push_to_db()
             CrawlerDB.writes_db.push_to_db()
+            CrawlerDB.tokens_db.push_to_db()
             CrawlerDB.pages_db.close_connection()
             CrawlerDB.images_db.close_connection()
             CrawlerDB.writes_db.close_connection()
+            CrawlerDB.tokens_db.close_connection()
+
+
+"""
+Might become useful when we store url counts
+    # tokens = {}
+    # for tokens_doc in self.buffer:
+    #     for token in tokens_doc["tokens"]:
+    #         if not tokens.get(token, None):
+    #             tokens[token] = {
+    #                 "token": token,
+    #                 "urls": {
+    #                     tokens_doc["url"]: {
+    #                         "url": tokens_doc["url"],
+    #                         "count": 1
+    #                     }
+    #                 }
+    #             }
+    #         else:
+    #             if tokens_doc[token]["urls"].get(tokens_doc["url"], None):
+    #                 tokens_doc[token]["urls"][tokens_doc["url"]]["count"] += 1
+    #             else:
+    #                 tokens_doc[token]["urls"][tokens_doc["url"]] = {
+    #                     "url": tokens_doc["url"],
+    #                     "count": 1
+    #                 }
+    # tokens = list(tokens.values())
+    # for token in tokens:
+    #     token["urls"] = list(token["urls"].values())
+"""
