@@ -67,7 +67,7 @@ DEFAULT_REQUEST_HEADERS = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-  #  'webscraper.pipelines.WriteToFilePipelin': 1,
+   'webscraper.pipelines.WordProcessorPipeline': 1,
    'webscraper.pipelines.MongoPipeline': 2,
 }
 
@@ -103,7 +103,7 @@ DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
-DEPTH_LIMIT = 2
+DEPTH_LIMIT = 1
 CONCURRENT_ITEMS = 200
 
 DOWNLOAD_TIMEOUT = 15

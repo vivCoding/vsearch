@@ -56,14 +56,15 @@ def get_head(response):
     }
 
 def get_words(response):
-    # returns a list of words in whole document
+    # returns a basic list of words in whole document
     try:
         response_text = response.text.replace("</", " </")
         doc = html.fromstring(response_text)
         # remove extra bad tags
         for bad in doc.cssselect("script, style"):
             bad.getparent().remove(bad)
-        words = re.sub(" +", " ", re.sub("([^\w\s])", " ", doc.text_content().replace("\n", " "). replace("\t", " "))).strip(" ").split(" ")
+        # get rid of punctuation, replace newlines and tabs with whitespace, and then split by whitespace
+        words = re.split(" +", re.sub("^\s+|\s+$", '', re.sub("([^\w\s])|(\n)|(\t)", " ", doc.text_content().replace("\n", " "). replace("\t", " "))))
         return words
     except:
         return []
