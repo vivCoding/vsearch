@@ -48,12 +48,12 @@ class MongoPipeline:
     def process_item(self, item, spider):
         if isinstance(item, Page):
             item = dict(item)
-            tokens_doc = {
+            tokens_docs = [{
                 "url": item["url"],
-                "tokens": item.pop("words")
-            }
+                "token": word
+            } for word in item.pop("words")]
             self.pages_db.insert(item)
-            self.tokens_db.insert(tokens_doc)
+            self.tokens_db.insert_many(tokens_docs)
         elif isinstance(item, Images):
             self.images_db.insert_many(item["images"])
         self.count += 1

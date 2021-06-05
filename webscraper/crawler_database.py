@@ -4,6 +4,8 @@ from pymongo.operations import UpdateOne
 from database import Database
 from webscraper.settings import MONGO, DB_BUFFER_SIZE, DB_UPLOAD_DELAY
 
+# TODO: refactor
+
 class Types:
     PAGE = "page"
     IMAGE = "image"
@@ -91,30 +93,18 @@ class CrawlerConnection(Database):
                     except: pass
                 else: pass
         elif self.item_type == Types.TOKENS:
-            # TODO: add count
-            tokens = {}
-            for token_doc in self.buffer:
-                for token in token_doc["tokens"]:
-                    if not tokens.get(token, None):
-                        tokens[token] = {
-                            "token": token,
-                            "urls": [token_doc["url"]]
-                        }
-                    else:
-                        tokens[token]["urls"].append(token_doc["url"])
-            tokens = list(tokens.values())
             try:
                 tokens_to_write = []
-                for token in tokens:
+                # each document is { token, url, count }. We just increase count if we encounter the same word on the same page (url)
+                # a bit messy, as there's a lot of small documents in the database. Might be the best for scalability though
+                for token_doc in self.buffer:
                     tokens_to_write.append(UpdateOne(
-                        {"_id": token["token"], "token": token["token"]},
-                        {"$addToSet": {"urls": {"$each": token["urls"]}}},
+                        {"token": token_doc["token"], "url": token_doc["url"]},
+                        {"$inc": {"count": 1}},
                         upsert=True
                     ))
                 self.collection.bulk_write(tokens_to_write, ordered=False)
-            except Exception as e:
-                print ("bad")
-                pass
+            except Exception as e: pass
         self.buffer *= 0
 
     def close_connection(self):
@@ -160,30 +150,28 @@ class CrawlerDB():
             CrawlerDB.tokens_db.close_connection()
 
 
-"""
-Might become useful when we store url counts
-    # tokens = {}
-    # for tokens_doc in self.buffer:
-    #     for token in tokens_doc["tokens"]:
-    #         if not tokens.get(token, None):
-    #             tokens[token] = {
-    #                 "token": token,
-    #                 "urls": {
-    #                     tokens_doc["url"]: {
-    #                         "url": tokens_doc["url"],
-    #                         "count": 1
-    #                     }
-    #                 }
-    #             }
-    #         else:
-    #             if tokens_doc[token]["urls"].get(tokens_doc["url"], None):
-    #                 tokens_doc[token]["urls"][tokens_doc["url"]]["count"] += 1
-    #             else:
-    #                 tokens_doc[token]["urls"][tokens_doc["url"]] = {
-    #                     "url": tokens_doc["url"],
-    #                     "count": 1
-    #                 }
-    # tokens = list(tokens.values())
-    # for token in tokens:
-    #     token["urls"] = list(token["urls"].values())
-"""
+# Might become useful again
+# tokens = {}
+# for tokens_doc in self.buffer:
+#     for token in tokens_doc["tokens"]:
+#         if not tokens.get(token, None):
+#             tokens[token] = {
+#                 "token": token,
+#                 "urls": {
+#                     tokens_doc["url"]: {
+#                         "url": tokens_doc["url"],
+#                         "count": 1
+#                     }
+#                 }
+#             }
+#         else:
+#             if not tokens[token]["urls"].get(tokens_doc["url"], None):
+#                 tokens[token]["urls"][tokens_doc["url"]] = {
+#                     "url": tokens_doc["url"],
+#                     "count": 1
+#                 }
+#             else:
+#                 tokens[token]["urls"][tokens_doc["url"]]["count"] += 1
+# tokens = list(tokens.values())
+# for token in tokens:
+#     token["urls"] = list(token["urls"].values())
