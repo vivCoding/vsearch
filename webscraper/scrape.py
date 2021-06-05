@@ -64,7 +64,7 @@ def get_words(response):
         for bad in doc.cssselect("script, style"):
             bad.getparent().remove(bad)
         # get rid of punctuation, replace newlines and tabs with whitespace, and then split by whitespace
-        words = re.split(" +", re.sub("^\s+|\s+$", '', re.sub("([^\w\s])|(\n)|(\t)|(\r)", " ", doc.text_content().replace("\n", " "). replace("\t", " "))))
+        words = re.split(" +", re.sub("([^\w\s])|(\n)|(\t)|(\r)", " ", doc.text_content()).strip(" "))
         return words
     except:
         return []

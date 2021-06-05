@@ -103,7 +103,7 @@ DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
-DEPTH_LIMIT = 1
+# DEPTH_LIMIT = 2
 CONCURRENT_ITEMS = 200
 
 DOWNLOAD_TIMEOUT = 15
@@ -116,7 +116,8 @@ LOG_LEVEL = 'INFO'
 # Custom dupe filter
 DUPEFILTER_CLASS = 'webscraper.middlewares.DupeFilter'
 
-DB_BUFFER_SIZE = 500
+# remember, don't set this too high, because Mongo max doc size is 16 MB
+DB_BUFFER_SIZE = 1000
 DB_UPLOAD_DELAY = 0
 MONGO = {
     "URL": os.getenv("MONGODB_URL", "mongodb://127.0.0.1:27017"),

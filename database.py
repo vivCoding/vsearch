@@ -20,6 +20,10 @@ class Database:
     :param db_upload_delay: how long to wait before sending items continuously
     :type: int
     """
+
+    # static variable that stores one mongodb client per url. Tracks how many connections per url
+    connections = {}
+
     def __init__(
         self, 
         database_name,
@@ -29,8 +33,17 @@ class Database:
         db_upload_delay=0
     ) -> None:
         """Setup MongoDB with connection. Get documents from collection in database"""
-        self.client = MongoClient(connection)
-        self.database = self.client[database_name]
+        if Database.connections.get(connection, None) is None:
+            Database.connections[connection] = {
+                "client": MongoClient(connection),
+                "total": 1
+            }
+            print ("- Connected to database")
+        else:
+            Database.connections[connection]["total"] += 1
+            print ("- Ignoring duplicate connection client")
+        self.connection = connection
+        self.database = Database.connections[connection]["client"][database_name]
         self.collection = self.database[collection_name]
         self.buffer = []
         self.max_buffer = db_buffer_size
@@ -69,5 +82,13 @@ class Database:
         self.buffer *= 0
 
     def close_connection(self):
-        try: Database.client.close()
-        except: pass
+        """Removes this connection from client. If client has no more connections, close it"""
+        if Database.connections.get(self.connection):
+            Database.connections[self.connection]["total"] -= 1
+            if Database.connections[self.connection]["total"] <= 0:
+                try:
+                    Database.connections[self.connection]["client"].close()
+                    print ('- fully disconnected')
+                except: pass
+                del Database.connections[self.connection]
+            else: print ("- ", Database.connections[self.connection]["total"], "remaining clients still connected")
