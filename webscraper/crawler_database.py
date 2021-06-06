@@ -1,5 +1,4 @@
-from pymongo import MongoClient, ReplaceOne
-from pymongo.operations import UpdateOne
+from pymongo import ReplaceOne, UpdateOne
 from database import Database
 from webscraper.settings import MONGO, DB_BUFFER_SIZE, DB_UPLOAD_DELAY
 
@@ -26,7 +25,6 @@ class PagesDatabase(Database):
             except: pass
         self.buffer *= 0
 
-
 class ImageDatabase(Database):
     # Nothing special here
     def push_to_db(self):
@@ -43,13 +41,25 @@ class TokensDatabase(Database):
     def push_to_db(self):
         if len(self.buffer) == 0: return
         try:
-            tokens_to_write = []
             # each document is { token, url, count }. We just increase count if we encounter the same word on the same page (url)
             # a bit messy, as there's a lot of small documents in the database. Might be the best for scalability though
+            # First, we add up counts for tokens/urls. Then we'll send them to the database
+            tokens = {}
             for token_doc in self.buffer:
+                if tokens.get(token_doc["token"] + token_doc["url"], None) is None:
+                    tokens[token_doc["token"] + token_doc["url"]] = {
+                        "token": token_doc["token"],
+                        "url": token_doc["url"],
+                        "count": 1
+                    }
+                else:
+                    tokens[token_doc["token"] + token_doc["url"]]["count"] += 1
+            tokens = list(tokens.values())
+            tokens_to_write = []
+            for token in tokens:
                 tokens_to_write.append(UpdateOne(
-                    {"token": token_doc["token"], "url": token_doc["url"]},
-                    {"$inc": {"count": 1}},
+                    {"token": token["token"], "url": token["url"]},
+                    {"$inc": {"count": token["count"]}},
                     upsert=True
                 ))
             self.collection.bulk_write(tokens_to_write, ordered=False)
@@ -85,30 +95,3 @@ class CrawlerDB():
             CrawlerDB.images_db.close_connection()
             CrawlerDB.writes_db.close_connection()
             CrawlerDB.tokens_db.close_connection()
-
-
-# Might become useful again
-# tokens = {}
-# for tokens_doc in self.buffer:
-#     for token in tokens_doc["tokens"]:
-#         if not tokens.get(token, None):
-#             tokens[token] = {
-#                 "token": token,
-#                 "urls": {
-#                     tokens_doc["url"]: {
-#                         "url": tokens_doc["url"],
-#                         "count": 1
-#                     }
-#                 }
-#             }
-#         else:
-#             if not tokens[token]["urls"].get(tokens_doc["url"], None):
-#                 tokens[token]["urls"][tokens_doc["url"]] = {
-#                     "url": tokens_doc["url"],
-#                     "count": 1
-#                 }
-#             else:
-#                 tokens[token]["urls"][tokens_doc["url"]]["count"] += 1
-# tokens = list(tokens.values())
-# for token in tokens:
-#     token["urls"] = list(token["urls"].values())

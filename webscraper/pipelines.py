@@ -44,6 +44,7 @@ class MongoPipeline:
         print ("Pages collection size:", self.pages_db.get_count(), "docs")
         print ("Images collection size:", self.images_db.get_count(), "docs")
         print ("Tokens collection size:", self.tokens_db.get_count(), "docs")
+        print ("Tokens distinct count:", len(self.tokens_db.collection.distinct("token")), "tokens")
         print ("=" * 30, "\n")
 
     def process_item(self, item, spider):
