@@ -72,10 +72,10 @@ class CrawlerDB():
     """
     __instance = None
 
-    pages_db = PagesDatabase(MONGO["NAME"], MONGO["PAGES_COLLECTION"], MONGO["URL"], DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
-    images_db = ImageDatabase(MONGO["NAME"], MONGO["IMAGES_COLLECTION"], MONGO["URL"], DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
-    writes_db = BacklinksDatabase(MONGO["NAME"], MONGO["PAGES_COLLECTION"], MONGO["URL"], DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
-    tokens_db = TokensDatabase(MONGO["NAME"], MONGO["TOKENS_COLLECTION"], MONGO["URL"], DB_BUFFER_SIZE * 15, DB_UPLOAD_DELAY)
+    pages_db = PagesDatabase(MONGO["NAME"], MONGO["PAGES_COLLECTION"], MONGO["URL"], MONGO["AUTHENTICATION"],  DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
+    images_db = ImageDatabase(MONGO["NAME"], MONGO["IMAGES_COLLECTION"], MONGO["URL"], MONGO["AUTHENTICATION"], DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
+    writes_db = BacklinksDatabase(MONGO["NAME"], MONGO["PAGES_COLLECTION"], MONGO["URL"], MONGO["AUTHENTICATION"], DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
+    page_tokens_db = TokensDatabase(MONGO["NAME"], MONGO["PAGE_TOKENS_COLLECTION"], MONGO["URL"], MONGO["AUTHENTICATION"], DB_BUFFER_SIZE * 15, DB_UPLOAD_DELAY)
 
     def __new__(cls):
         if cls.__instance is None:
@@ -90,8 +90,8 @@ class CrawlerDB():
             CrawlerDB.pages_db.push_to_db()
             CrawlerDB.images_db.push_to_db()
             CrawlerDB.writes_db.push_to_db()
-            CrawlerDB.tokens_db.push_to_db()
+            CrawlerDB.page_tokens_db.push_to_db()
             CrawlerDB.pages_db.close_connection()
             CrawlerDB.images_db.close_connection()
             CrawlerDB.writes_db.close_connection()
-            CrawlerDB.tokens_db.close_connection()
+            CrawlerDB.page_tokens_db.close_connection()

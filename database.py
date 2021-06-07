@@ -29,13 +29,14 @@ class Database:
         database_name,
         collection_name,
         connection="mongodb://127.0.0.1:27017",
+        authentication={"username": "", "password": "", "authSource": ""},
         db_buffer_size=100,
         db_upload_delay=0
     ) -> None:
         """Setup MongoDB with connection. Get documents from collection in database"""
         if Database.connections.get(connection, None) is None:
             Database.connections[connection] = {
-                "client": MongoClient(connection),
+                "client": MongoClient(connection, **authentication),
                 "total": 1
             }
             print ("- Connected to database")

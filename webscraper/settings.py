@@ -42,8 +42,8 @@ COOKIES_ENABLED = False
 
 # Override the default request headers:
 DEFAULT_REQUEST_HEADERS = {
-  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-  'Accept-Language': 'en',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'en',
 }
 
 # Enable or disable spider middlewares
@@ -103,7 +103,7 @@ DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
-# DEPTH_LIMIT = 2
+DEPTH_LIMIT = 2
 CONCURRENT_ITEMS = 200
 
 DOWNLOAD_TIMEOUT = 15
@@ -122,7 +122,15 @@ DB_UPLOAD_DELAY = 0
 MONGO = {
     "URL": os.getenv("MONGODB_URL", "mongodb://127.0.0.1:27017"),
     "NAME": os.getenv("MONGODB_NAME", "db_name"),
+    "AUTHENTICATION": {
+        "username": os.getenv("MONGODB_USER", ""),
+        "password": os.getenv("MONGODB_PWD", ""),
+        "authSource": os.getenv("MONGODB_AUTH_SRC", "")
+    },
     "PAGES_COLLECTION": os.getenv("MONGODB_PAGES_COLLECTION", "pages"),
     "IMAGES_COLLECTION": os.getenv("MONGODB_IMAGES_COLLECTION", "images"),
-    "TOKENS_COLLECTION": os.getenv("MONGODB_TOKENS_COLLECTION", "tokens")
+    "PAGE_TOKENS_COLLECTION": os.getenv("MONGODB_PAGE_TOKENS_COLLECTION", "page_tokens")
 }
+
+if authMech := os.getenv("MONGODB_AUTH_MECH", None):
+    MONGO["AUTHENTICATION"]["authMechanism"] = authMech

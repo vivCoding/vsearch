@@ -12,6 +12,7 @@ import time
 from nltk import PorterStemmer
 
 class WordProcessorPipeline:
+    # TODO: do the same thing for images
     stemmer = PorterStemmer()
     # from nltk.corpus import stopwords
     # stopwords.words("english")
@@ -31,7 +32,7 @@ class MongoPipeline:
     def open_spider(self, spider):
         self.pages_db = CrawlerDB.pages_db
         self.images_db = CrawlerDB.images_db
-        self.tokens_db = CrawlerDB.tokens_db
+        self.page_tokens_db = CrawlerDB.page_tokens_db
         self.start_time = time.time()
         self.count = 0
     
@@ -43,8 +44,8 @@ class MongoPipeline:
         print ("Total scraped:", self.count)
         print ("Pages collection size:", self.pages_db.get_count(), "docs")
         print ("Images collection size:", self.images_db.get_count(), "docs")
-        print ("Tokens collection size:", self.tokens_db.get_count(), "docs")
-        print ("Tokens distinct count:", len(self.tokens_db.collection.distinct("token")), "tokens")
+        print ("Tokens collection size:", self.page_tokens_db.get_count(), "docs")
+        print ("Tokens distinct count:", len(self.page_tokens_db.collection.distinct("token")), "tokens")
         print ("=" * 30, "\n")
 
     def process_item(self, item, spider):
@@ -56,7 +57,7 @@ class MongoPipeline:
                 "token": word
             } for word in words]
             self.pages_db.insert(item)
-            self.tokens_db.insert_many(tokens_docs)
+            self.page_tokens_db.insert_many(tokens_docs)
         elif isinstance(item, Images):
             self.images_db.insert_many(item["images"])
         self.count += 1
