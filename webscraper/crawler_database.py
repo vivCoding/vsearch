@@ -76,6 +76,7 @@ class CrawlerDB():
     images_db = ImageDatabase(MONGO["NAME"], MONGO["IMAGES_COLLECTION"], MONGO["URL"], MONGO["AUTHENTICATION"], DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
     writes_db = BacklinksDatabase(MONGO["NAME"], MONGO["PAGES_COLLECTION"], MONGO["URL"], MONGO["AUTHENTICATION"], DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
     page_tokens_db = TokensDatabase(MONGO["NAME"], MONGO["PAGE_TOKENS_COLLECTION"], MONGO["URL"], MONGO["AUTHENTICATION"], DB_BUFFER_SIZE * 15, DB_UPLOAD_DELAY)
+    image_tokens_db = TokensDatabase(MONGO["NAME"], MONGO["IMAGE_TOKENS_COLLECTION"], MONGO["URL"], MONGO["AUTHENTICATION"], DB_BUFFER_SIZE * 15, DB_UPLOAD_DELAY)
 
     def __new__(cls):
         if cls.__instance is None:

@@ -129,7 +129,8 @@ MONGO = {
     },
     "PAGES_COLLECTION": os.getenv("MONGODB_PAGES_COLLECTION", "pages"),
     "IMAGES_COLLECTION": os.getenv("MONGODB_IMAGES_COLLECTION", "images"),
-    "PAGE_TOKENS_COLLECTION": os.getenv("MONGODB_PAGE_TOKENS_COLLECTION", "page_tokens")
+    "PAGE_TOKENS_COLLECTION": os.getenv("MONGODB_PAGE_TOKENS_COLLECTION", "page_tokens"),
+    "IMAGE_TOKENS_COLLECTION": os.getenv("MONGODB_IMAGE_TOKENS_COLLECTION", "image_tokens"),
 }
 
 if authMech := os.getenv("MONGODB_AUTH_MECH", None):

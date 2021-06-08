@@ -7,12 +7,13 @@ pip install -r requirements.txt
 ```
 
 ## MongoDB Setup
-Create database and collections
+Create database and four collections to store pages, images, and index tokens (for faster future searchup)
 ```
 use db_name
 db.createCollection("pages_collection_name")
 db.createCollection("images_collection_name")
 db.createCollection("page_tokens_collection_name")
+db.createCollection("image_tokens_collection_name")
 ```
 Create indexes for page collection to easily search things up later. All pages should be identifiable by their url
 ```
@@ -22,7 +23,7 @@ db.pages_collection.createIndex({backlinks: 1}, {name: "backlinks"})
 ```
 Every image should be identifiable by their url. Create indexes for such
 ```
-db.images_collection.createIndex({src: 1}, {name: "src", unique: true})
+db.images_collection.createIndex({url: 1}, {name: "img_src_url", unique: true})
 ```
 Create indexes for tokens collection such that it's easy to search things up.
 ```
@@ -30,4 +31,6 @@ db.page_tokens_collection.createIndex({token: 1}, {name: "token"})
 db.page_tokens_collection.createIndex({token: 1, count: -1}, {name: "tokens_count"})
 db.page_tokens_collection.createIndex({token: 1, url: 1}, {name: "token_url"})
 ```
+Repeat for `image_tokens` collection
+
 Create `.env` in project root directory, and add info. Example found in `.env.sample`

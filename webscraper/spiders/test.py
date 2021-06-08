@@ -12,9 +12,7 @@ class TestSpider(scrapy.Spider):
     def parse(self, response):
         if response.status == 200:
             content = get_content(response)
-            images = get_images(response)
             yield content
-            yield images
             yield from response.follow_all(
                 content["urls"],
                 callback = self.parse,
