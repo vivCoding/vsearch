@@ -36,5 +36,5 @@ class Image(Item):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self["_id"] = self["src"]
+        self["_id"] = self["url"]
         self["time"] = str(datetime.now())

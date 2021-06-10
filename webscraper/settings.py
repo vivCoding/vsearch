@@ -38,7 +38,7 @@ DOWNLOAD_DELAY = 0
 COOKIES_ENABLED = False
 
 # Disable Telnet Console (enabled by default)
-#TELNETCONSOLE_ENABLED = False
+TELNETCONSOLE_ENABLED = False
 
 # Override the default request headers:
 DEFAULT_REQUEST_HEADERS = {
@@ -60,14 +60,14 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
-#EXTENSIONS = {
+# EXTENSIONS = {
 #    'scrapy.extensions.telnet.TelnetConsole': None,
-#}
+# }
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'webscraper.pipelines.WordProcessorPipeline': 1,
+   'webscraper.pipelines.ParserPipeline': 1,
    'webscraper.pipelines.MongoPipeline': 2,
 }
 
@@ -96,14 +96,14 @@ AUTOTHROTTLE_TARGET_CONCURRENCY = 100
 # See (https://docs.scrapy.org/en/latest/topics/broad-crawls.html)
 
 SCHEDULER_PRIORITY_QUEUE = 'scrapy.pqueues.DownloaderAwarePriorityQueue'
-REACTOR_THREADPOOL_MAXSIZE = 40
+REACTOR_THREADPOOL_MAXSIZE = 80
 
 # go in breadth-first-order rather than depth first
 DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
-DEPTH_LIMIT = 2
+DEPTH_LIMIT = 1
 CONCURRENT_ITEMS = 200
 
 DOWNLOAD_TIMEOUT = 15
@@ -112,6 +112,7 @@ REDIRECT_ENABLED = True
 REDIRECT_MAX_TIMES = 3
 
 LOG_LEVEL = 'INFO'
+# LOG_FILE = "logs.txt"
 
 # Custom dupe filter
 DUPEFILTER_CLASS = 'webscraper.middlewares.DupeFilter'

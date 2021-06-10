@@ -30,8 +30,6 @@ def get_urls(response):
                 urls.append(href)
     return urls
 
-#region Formatting helper functions
-
 def format_url(url):
     return url.rstrip("/").strip(" ")
 
@@ -39,9 +37,3 @@ def format_url(url):
 # # Best to use it when not crawling url
 def remove_fragments(url):
     return format_url(url.split("#")[0])
-
-def format_text(text):
-    # get rid of all new lines, then delete redundant spaces
-    return re.sub(" +", " ", re.sub("\n", " ", text)).strip(" ")
-
-#endregion Formatting helper functions

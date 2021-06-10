@@ -71,6 +71,10 @@ class Database:
         query_result = list(self.collection.find(filter=query, projection=projection))
         return query_result
     
+    def aggregate(self, pipeline) -> list:
+        """Returns a list of results from MongoDB aggregation"""
+        return list(self.collection.aggregate(pipeline))
+
     def get_count(self, filters={}) -> int:
         """Returns number of docs in collection with filters (leave blank to get all docs)"""
         return self.collection.count_documents(filters)

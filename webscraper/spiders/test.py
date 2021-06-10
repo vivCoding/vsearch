@@ -1,5 +1,5 @@
 import scrapy
-from webscraper.scrape import get_content, get_images
+from webscraper.scrape import get_content
 
 class TestSpider(scrapy.Spider):
     name = "test"

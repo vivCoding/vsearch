@@ -10,26 +10,26 @@ pip install -r requirements.txt
 Create database and four collections to store pages, images, and index tokens (for faster future searchup)
 ```
 use db_name
-db.createCollection("pages_collection_name")
-db.createCollection("images_collection_name")
-db.createCollection("page_tokens_collection_name")
-db.createCollection("image_tokens_collection_name")
+db.createCollection("pages")
+db.createCollection("images")
+db.createCollection("page_tokens")
+db.createCollection("image_tokens")
 ```
 Create indexes for page collection to easily search things up later. All pages should be identifiable by their url
 ```
-db.pages_collection.createIndex({url: 1}, {name: "url", unique: true})
-db.pages_collection.createIndex({time: 1}, {name: "time})
-db.pages_collection.createIndex({backlinks: 1}, {name: "backlinks"})
+db.pages.createIndex({url: 1}, {name: "url", unique: true})
+db.pages.createIndex({time: 1}, {name: "time})
+db.pages.createIndex({backlinks: 1}, {name: "backlinks"})
 ```
 Every image should be identifiable by their url. Create indexes for such
 ```
-db.images_collection.createIndex({url: 1}, {name: "img_src_url", unique: true})
+db.images.createIndex({url: 1}, {name: "img_src_url", unique: true})
 ```
 Create indexes for tokens collection such that it's easy to search things up.
 ```
-db.page_tokens_collection.createIndex({token: 1}, {name: "token"})
-db.page_tokens_collection.createIndex({token: 1, count: -1}, {name: "tokens_count"})
-db.page_tokens_collection.createIndex({token: 1, url: 1}, {name: "token_url"})
+db.page_tokens.createIndex({token: 1}, {name: "token", unique: true})
+db.page_tokens.createIndex({"token": 1, "urls.url": 1}, {name: "token_urls"})
+db.page_tokens.createIndex({"token": 1, "urls.count": -1}, {name: "token_urls_count"})
 ```
 Repeat for `image_tokens` collection
 
