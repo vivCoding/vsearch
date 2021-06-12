@@ -29,6 +29,7 @@ Create indexes for tokens collection such that it's easy to search things up.
 ```
 db.page_tokens.createIndex({token: 1}, {name: "token", unique: true})
 db.page_tokens.createIndex({"token": 1, "urls.url": 1}, {name: "token_urls"})
+db.page_tokens.createIndex({"urls.url": 1}, {name: "urls"})
 db.page_tokens.createIndex({"token": 1, "urls.count": -1}, {name: "token_urls_count"})
 ```
 Repeat for `image_tokens` collection

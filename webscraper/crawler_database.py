@@ -1,9 +1,106 @@
-from pymongo import ReplaceOne, UpdateOne
-from pymongo.operations import InsertOne
 from database import Database
+from multiprocessing import Process, Queue
+from pymongo import ReplaceOne, UpdateOne, InsertOne
 from webscraper.settings import MONGO, DB_BUFFER_SIZE, DB_UPLOAD_DELAY
 
+class Types:
+    PAGE = "page"
+    IMAGES = "images"
+    BACKLINK = "backlinks"
+    PAGE_TOKENS = "page_tokens"
+    IMAGE_TOKENS = "image_tokens"
+
+class CrawlerDBProcess(Process):
+    _db_queue = Queue()
+    _queue_close_message = -1
+    running = False
+
+    def __init__(self, print_summary = False) -> None:
+        super(CrawlerDBProcess, self).__init__()
+        self.print_summary = print_summary
+
+    def start(self) -> None:
+        if not CrawlerDBProcess.running:
+            CrawlerDBProcess.running = True
+            super().start()
+
+    @staticmethod
+    def insert(type, item):
+        CrawlerDBProcess._db_queue.put((type, item))
+
+    def run(self):
+        pages_db = PagesDatabase()
+        images_db = ImageDatabase()
+        writes_db = BacklinksDatabase()
+        page_tokens_db = TokensDatabase(MONGO["PAGE_TOKENS_COLLECTION"])
+        image_tokens_db = TokensDatabase(MONGO["IMAGE_TOKENS_COLLECTION"])
+        
+        # run forever until we encounter end signal in queue
+        while True:
+            try: toadd = CrawlerDBProcess._db_queue.get(block=False, timeout=2)
+            except: continue
+            if toadd == CrawlerDBProcess._queue_close_message: break
+            db_type, item = toadd
+            # Python 3.9 doesn't have match case, and im too lazy to upgrade/learn about other switch equivalents
+            if db_type == Types.PAGE:
+                # type(item) = Page
+                pages_db.insert(item)
+            elif db_type == Types.IMAGES:
+                # type(item) = [Image, ...]
+                images_db.insert_many(item)
+            elif db_type == Types.BACKLINK:
+                # type(item) = { url, backlink }
+                writes_db.insert(UpdateOne(
+                    {"_id": item["url"], "url": item["url"]},
+                    {"$addToSet": {"backlinks": item["backlink"]}},
+                    upsert=True
+                ))
+            elif db_type == Types.PAGE_TOKENS:
+                # type(item) = [{ token, url }, ...]
+                page_tokens_db.insert_many(item)
+            elif db_type == Types.IMAGE_TOKENS:
+                # type(item) = [{ token, url }, ...]
+                image_tokens_db.insert_many(item)
+        
+        # maybe there's a more elegant way to do this?
+        pages_db.push_to_db(); images_db.push_to_db(); writes_db.push_to_db()
+        page_tokens_db.push_to_db(); image_tokens_db.push_to_db()
+
+        if self.print_summary:
+            with open("summary_stats.txt", "a") as f:
+                f.write(f"Pages collection size: {pages_db.get_count()} docs\n")
+                f.write(f"Images collection size: {images_db.get_count()} docs\n")
+                f.write(f"Page tokens collection size: {page_tokens_db.get_count()} docs\n")
+                f.write(f"Image tokens collection size: {image_tokens_db.get_count()} docs")
+            print("\n" + ("=" * 30))
+            print ("Pages collection size:", pages_db.get_count(), "docs")
+            print ("Images collection size:", images_db.get_count(), "docs")
+            print ("Page tokens collection size:", page_tokens_db.get_count(), "docs")
+            print ("Image tokens collection size:", image_tokens_db.get_count(), "tokens")
+            print ("=" * 30)
+
+        pages_db.close_connection(); images_db.close_connection(); writes_db.close_connection()
+        page_tokens_db.close_connection(); image_tokens_db.close_connection()
+
+        CrawlerDBProcess.running = False
+            
+    def stop(self):
+        if CrawlerDBProcess.running:
+            CrawlerDBProcess._db_queue.put(self._queue_close_message)
+            super().join()
+            CrawlerDBProcess.running = False
+        else:
+            print ("CrawlerDBProcess not running! Can't join!")
+
+
 class PagesDatabase(Database):
+    def __init__(self) -> None:
+        super().__init__(
+            MONGO["NAME"], MONGO["PAGES_COLLECTION"],
+            MONGO["URL"], MONGO["AUTHENTICATION"],
+            DB_BUFFER_SIZE, DB_UPLOAD_DELAY
+        )
+
     def push_to_db(self):
         if len(self.buffer) == 0: return
         try: self.collection.insert_many(self.buffer, ordered=False)
@@ -26,19 +123,33 @@ class PagesDatabase(Database):
             except: pass
         self.buffer *= 0
 
-class ImageDatabase(Database):
-    # Nothing special here
-    def push_to_db(self):
-        return super().push_to_db()
 
-class BacklinksDatabase(Database):
+class ImageDatabase(Database):
+    def __init__(self) -> None:
+        super().__init__(
+            MONGO["NAME"], MONGO["IMAGES_COLLECTION"],
+            MONGO["URL"], MONGO["AUTHENTICATION"],
+            DB_BUFFER_SIZE, DB_UPLOAD_DELAY
+        )
+
+
+class BacklinksDatabase(PagesDatabase):
     def push_to_db(self):
         if len(self.buffer) == 0: return
         try: self.collection.bulk_write(self.buffer, ordered=False)
         except Exception as e: pass
         self.buffer *= 0
 
+
 class TokensDatabase(Database):
+    def __init__(self, tokens_collection) -> None:
+        # can be either page tokens or image tokens
+        super().__init__(
+            MONGO["NAME"], tokens_collection,
+            MONGO["URL"], MONGO["AUTHENTICATION"],
+            DB_BUFFER_SIZE * 15, DB_UPLOAD_DELAY
+        )
+    
     def push_to_db(self):
         if len(self.buffer) == 0: return
         try:
@@ -120,36 +231,3 @@ class TokensDatabase(Database):
             self.collection.bulk_write(tokens_to_write, ordered=False)
         except Exception as e: pass
         self.buffer *= 0
-
-class CrawlerDB():
-    """Stores all database connections for crawlers
-    Static variables, follow singleton pattern
-    """
-    __instance = None
-
-    pages_db = PagesDatabase(MONGO["NAME"], MONGO["PAGES_COLLECTION"], MONGO["URL"], MONGO["AUTHENTICATION"],  DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
-    images_db = ImageDatabase(MONGO["NAME"], MONGO["IMAGES_COLLECTION"], MONGO["URL"], MONGO["AUTHENTICATION"], DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
-    writes_db = BacklinksDatabase(MONGO["NAME"], MONGO["PAGES_COLLECTION"], MONGO["URL"], MONGO["AUTHENTICATION"], DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
-    page_tokens_db = TokensDatabase(MONGO["NAME"], MONGO["PAGE_TOKENS_COLLECTION"], MONGO["URL"], MONGO["AUTHENTICATION"], DB_BUFFER_SIZE * 15, DB_UPLOAD_DELAY)
-    image_tokens_db = TokensDatabase(MONGO["NAME"], MONGO["IMAGE_TOKENS_COLLECTION"], MONGO["URL"], MONGO["AUTHENTICATION"], DB_BUFFER_SIZE * 15, DB_UPLOAD_DELAY)
-
-    def __new__(cls):
-        if cls.__instance is None:
-            cls.__instance = object.__new__(cls)
-        return cls.__instance
-
-    @staticmethod
-    def close_connections():
-        """Closes all connections in an ORDERED manner"""
-        # TODO: maybe there's a more elegant way to do this?
-        if CrawlerDB.pages_db is not None:
-            CrawlerDB.pages_db.push_to_db()
-            CrawlerDB.images_db.push_to_db()
-            CrawlerDB.writes_db.push_to_db()
-            CrawlerDB.page_tokens_db.push_to_db()
-            CrawlerDB.image_tokens_db.push_to_db()
-            CrawlerDB.pages_db.close_connection()
-            CrawlerDB.images_db.close_connection()
-            CrawlerDB.writes_db.close_connection()
-            CrawlerDB.page_tokens_db.close_connection()
-            CrawlerDB.image_tokens_db.close_connection()

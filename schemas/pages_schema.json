@@ -1,11 +1,8 @@
 {
-    "_id": "objectId",
+    "_id": "unique_website_url",
     "url": "unique_website_url",
     "title": "title",
     "description": "description",
-    "keywords": [
-        "keyword1", "keyword2", "keyword3"
-    ],
     "urls": [
         "forward_link_on_page",
         "forward_link_on_page",

@@ -67,8 +67,9 @@ DEFAULT_REQUEST_HEADERS = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'webscraper.pipelines.ParserPipeline': 1,
-   'webscraper.pipelines.MongoPipeline': 2,
+   'webscraper.pipelines.ItemDistributorPipeline': 1,
+#    'webscraper.pipelines.ParserPipeline': 1,
+#    'webscraper.pipelines.MongoPipeline': 2,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -136,3 +137,5 @@ MONGO = {
 
 if authMech := os.getenv("MONGODB_AUTH_MECH", None):
     MONGO["AUTHENTICATION"]["authMechanism"] = authMech
+
+MAX_PIPELINE_PROCESSES = 2
