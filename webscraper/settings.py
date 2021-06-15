@@ -121,7 +121,7 @@ DUPEFILTER_CLASS = 'webscraper.middlewares.DupeFilter'
 # remember, don't set this too high, because Mongo max doc size is 16 MB
 DB_BUFFER_SIZE = 1000
 DB_UPLOAD_DELAY = 0
-DB_WORKER_PROCESSES = 4
+DB_PIPELINE_PROCESSES = 2
 DB_QUEUE_HANDLERS = 4
 DB_WORKER_THREADS = 4
 MONGO = {

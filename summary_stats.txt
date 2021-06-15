@@ -1,9 +1,0 @@
-Pages collection size: 71 docs
-Images collection size: 905 docs
-Page tokens collection size: 14207 docs
-Image tokens collection size: 12686 docs
-Pages collection size: 71 docs
-Images collection size: 907 docs
-Page tokens collection size: 14207 docs
-Image tokens collection size: 12686 docsTime took 50.19393992424011
-Total processed 72
