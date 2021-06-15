@@ -130,7 +130,7 @@ class CrawlerDBProcess(Process):
         page_tokens_count = self.page_tokens_db.get_count()
         image_tokens_count = self.image_tokens_db.get_count()
         with open("summary_stats.txt", "a") as f:
-            f.write(f"Pages collection size: {pages_count} docs\n")
+            f.write(f"\n\nPages collection size: {pages_count} docs\n")
             f.write(f"Images collection size: {images_count} docs\n")
             f.write(f"Page tokens collection size: {page_tokens_count} docs\n")
             f.write(f"Image tokens collection size: {image_tokens_count} docs")
