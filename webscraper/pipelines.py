@@ -132,10 +132,11 @@ class ParserPipeline(CustomPipeline):
 
 class MongoPipeline(CustomPipeline):
     def __init__(self) -> None:
-        self.db = CrawlerDBProcess(print_summary=True)
+        self.db_processes = [CrawlerDBProcess(print_summary=True) for _ in range(2)]
 
     def start(self):
-        self.db.start()
+        for db_process in self.db_processes:
+            db_process.start()
 
     def process_item(self, item):
         item = dict(item)
@@ -159,5 +160,6 @@ class MongoPipeline(CustomPipeline):
         CrawlerDBProcess.insert(Types.PAGE, item)
 
     def close(self):
-        self.db.stop()
-        self.db.close()
+        for db_process in self.db_processes:
+            db_process.join()
+            db_process.close()

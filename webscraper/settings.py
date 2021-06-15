@@ -121,6 +121,7 @@ DUPEFILTER_CLASS = 'webscraper.middlewares.DupeFilter'
 # remember, don't set this too high, because Mongo max doc size is 16 MB
 DB_BUFFER_SIZE = 1000
 DB_UPLOAD_DELAY = 0
+DB_THREADS = 4
 MONGO = {
     "URL": os.getenv("MONGODB_URL", "mongodb://127.0.0.1:27017"),
     "NAME": os.getenv("MONGODB_NAME", "db_name"),
