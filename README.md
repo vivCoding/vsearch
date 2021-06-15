@@ -31,6 +31,8 @@ db.page_tokens.createIndex({token: 1}, {name: "token", unique: true})
 db.page_tokens.createIndex({"token": 1, "urls.url": 1}, {name: "token_urls"})
 db.page_tokens.createIndex({"urls.url": 1}, {name: "urls"})
 db.page_tokens.createIndex({"token": 1, "urls.count": -1}, {name: "token_urls_count"})
+```
+```
 db.image_tokens.createIndex({token: 1}, {name: "token", unique: true})
 db.image_tokens.createIndex({"token": 1, "urls.url": 1}, {name: "token_urls"})
 db.image_tokens.createIndex({"urls.url": 1}, {name: "urls"})
@@ -38,3 +40,9 @@ db.image_tokens.createIndex({"token": 1, "urls.count": -1}, {name: "token_urls_c
 ```
 
 Create `.env` in project root directory, and add info. Example found in `.env.sample`
+
+
+## Running
+```
+scrapy crawl <spider_name>
+```

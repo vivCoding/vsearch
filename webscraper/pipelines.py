@@ -4,7 +4,7 @@
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
 
-from webscraper.settings import MAX_PIPELINE_PROCESSES
+from webscraper.settings import DB_WORKER_PROCESSES, MAX_PIPELINE_PROCESSES
 from webscraper.items import Image, ParsedPage
 from multiprocessing import Pool
 from nltk import PorterStemmer
@@ -68,7 +68,6 @@ class ItemDistributorPipeline:
     
     def process_item(self, item, spider):
         self._pool.apply_async(go_through_pipelines, (item, 0))
-        # go_through_pipelines(item)
         self.count += 1
 
 
@@ -132,7 +131,7 @@ class ParserPipeline(CustomPipeline):
 
 class MongoPipeline(CustomPipeline):
     def __init__(self) -> None:
-        self.db_processes = [CrawlerDBProcess(print_summary=True) for _ in range(2)]
+        self.db_processes = [CrawlerDBProcess(print_summary=True) for _ in range(DB_WORKER_PROCESSES)]
 
     def start(self):
         for db_process in self.db_processes:

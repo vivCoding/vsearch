@@ -4,7 +4,7 @@ from threading import Thread
 import queue
 from pymongo import ReplaceOne, UpdateOne, InsertOne
 from pymongo.errors import BulkWriteError
-from webscraper.settings import MONGO, DB_BUFFER_SIZE, DB_UPLOAD_DELAY, DB_THREADS
+from webscraper.settings import MONGO, DB_BUFFER_SIZE, DB_UPLOAD_DELAY, DB_WORKER_THREADS, DB_QUEUE_HANDLERS
 from uuid import uuid4
 import traceback
 
@@ -30,8 +30,8 @@ class CrawlerDBProcess(Process):
         self.page_tokens_db = None
         self.image_tokens_db = None
 
-        self.num_db_queue_handlers = 4
-        self.num_workers = 4
+        self.num_db_queue_handlers = DB_QUEUE_HANDLERS
+        self.num_workers = DB_WORKER_THREADS
         self._db_queue = None
 
     @staticmethod

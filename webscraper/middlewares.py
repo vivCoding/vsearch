@@ -5,8 +5,6 @@
 
 # useful for handling different item types with a single interface
 from webscraper.items import Backlink
-from itemadapter import ItemAdapter, is_item
-from scrapy import signals
 from webscraper.crawler_database import CrawlerDBProcess, Types
 from scrapy.dupefilters import RFPDupeFilter
 from webscraper.scrape import format_url, remove_fragments
