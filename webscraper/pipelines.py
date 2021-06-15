@@ -67,7 +67,7 @@ class ItemDistributorPipeline:
             f.write(f"Total processed {self.count}\n")
     
     def process_item(self, item, spider):
-        self._pool.apply(go_through_pipelines, (item, 0))
+        self._pool.apply_async(go_through_pipelines, (item, 0))
         # go_through_pipelines(item)
         self.count += 1
 
@@ -144,7 +144,7 @@ class MongoPipeline(CustomPipeline):
             "token": token,
             "url": item["url"]
         } for token in page_tokens]
-        self.db.insert(Types.PAGE_TOKENS, page_tokens_docs)
+        CrawlerDBProcess.insert(Types.PAGE_TOKENS, page_tokens_docs)
 
         images = item.pop("images", [])
         for image in images:
@@ -153,10 +153,10 @@ class MongoPipeline(CustomPipeline):
                 "token": token,
                 "url": image["url"]
             } for token in image_tokens]
-            self.db.insert(Types.IMAGE_TOKENS, image_token_docs)
+            CrawlerDBProcess.insert(Types.IMAGE_TOKENS, image_token_docs)
 
-        self.db.insert(Types.IMAGES, images)        
-        self.db.insert(Types.PAGE, item)
+        CrawlerDBProcess.insert(Types.IMAGES, images)        
+        CrawlerDBProcess.insert(Types.PAGE, item)
 
     def close(self):
         self.db.stop()

@@ -10,7 +10,6 @@ from scrapy import signals
 from webscraper.crawler_database import CrawlerDBProcess, Types
 from scrapy.dupefilters import RFPDupeFilter
 from webscraper.scrape import format_url, remove_fragments
-from pymongo.operations import UpdateOne
 
 class DupeFilter(RFPDupeFilter):
     def __init__(self, path, debug):

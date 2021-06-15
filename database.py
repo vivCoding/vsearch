@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+from motor.motor_asyncio import AsyncIOMotorClient
 
 # TODO: consider setting up schemas using pymongoose. Or not, since im lazy :)
 
@@ -97,3 +98,71 @@ class Database:
                 except: pass
                 del Database.connections[self.connection]
             else: print ("- ", Database.connections[self.connection]["total"], "remaining clients still connected")
+
+class AsyncDatabase(Database):
+    def __init__(
+        self, 
+        database_name,
+        collection_name,
+        connection="mongodb://127.0.0.1:27017",
+        authentication={"username": "", "password": "", "authSource": ""},
+        db_buffer_size=100,
+        db_upload_delay=0
+    ) -> None:
+        """Setup MongoDB with connection. Get documents from collection in database"""
+        if AsyncDatabase.connections.get(connection, None) is None:
+            AsyncDatabase.connections[connection] = {
+                "client": AsyncIOMotorClient(connection, **authentication),
+                "total": 1
+            }
+            print ("- Connected to database")
+        else:
+            AsyncDatabase.connections[connection]["total"] += 1
+            print ("- Ignoring duplicate connection client")
+        self.connection = connection
+        self.database = AsyncDatabase.connections[connection]["client"][database_name]
+        self.collection = self.database[collection_name]
+        self.buffer = []
+        self.max_buffer = db_buffer_size
+        self.upload_delay = db_upload_delay
+
+    async def check_if_exists(self, url) -> bool:
+        return await super().check_if_exists(url)
+
+    async def insert(self, item):
+        self.buffer.append(item)
+        if len(self.buffer) >= self.max_buffer:
+            await self.push_to_db()
+
+    async def insert_many(self, items):
+        self.buffer += items
+        if len(self.buffer) >= self.max_buffer:
+            await self.push_to_db()
+    
+    async def query(self, query={}, projection={}) -> list:
+        """Returns list of results from database based on query. Leave parameter blank to get all documents"""
+        return await self.collection.find(filter=query, projection=projection).to_list(2000)
+
+    async def aggregate(self, pipeline) -> list:
+        return await self.collection.aggregate(pipeline).to_list(2000)
+
+    async def get_count(self, filters={}) -> int:
+        return await self.collection.count_documents(filters)
+
+    async def push_to_db(self):
+        if len(self.buffer) == 0: return
+        try: await self.collection.insert_many(self.buffer, ordered=False)
+        except Exception: pass
+        self.buffer *= 0
+
+    def close_connection(self):
+        """Removes this connection from client. If client has no more connections, close it"""
+        if AsyncDatabase.connections.get(self.connection):
+            AsyncDatabase.connections[self.connection]["total"] -= 1
+            if AsyncDatabase.connections[self.connection]["total"] <= 0:
+                try:
+                    AsyncDatabase.connections[self.connection]["client"].close()
+                    print ('- fully disconnected')
+                except: pass
+                del AsyncDatabase.connections[self.connection]
+            else: print ("- ", AsyncDatabase.connections[self.connection]["total"], "remaining clients still connected")
