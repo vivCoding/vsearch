@@ -4,13 +4,16 @@ import re
 
 def get_content(response):
     """Basic content parsing from response page (getting text and urls)"""
+    try: text = response.text
+    except: text = ""
+
     # get backlink
     backlink = response.meta.get("backlink", None)
     backlinks = [format_url(backlink)] if backlink else []
 
     return Page(
         url = format_url(response.url),
-        text = response.text,
+        text = text,
         urls = get_urls(response),
         backlinks = backlinks
     )
