@@ -1,17 +1,18 @@
 {
-    "_id": "unique_website_url",
+    "_id": "objectId",
     "url": "unique_website_url",
     "title": "title",
     "description": "description",
+    "keywords": [
+        "keyword1", "keyword2", "keyword3"
+    ],
     "urls": [
         "forward_link_on_page",
         "forward_link_on_page",
         "forward_link_on_page"
     ],
     "backlinks": [
-        "unique_url1",
-        "unique_url2",
-        "unique_url3"
+        "unique_url1", "unique_url2", "unique_url3"
     ],
     "time": "yyyy-mm-dd hh:mm:ss:ms.msmsms"
 }

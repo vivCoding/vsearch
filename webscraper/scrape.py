@@ -1,5 +1,6 @@
 from urllib.parse import urlparse
 from webscraper.items import Page
+import re
 
 def get_content(response):
     """Basic content parsing from response page (getting text and urls)"""

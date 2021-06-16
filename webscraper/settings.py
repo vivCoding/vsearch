@@ -67,9 +67,8 @@ DEFAULT_REQUEST_HEADERS = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'webscraper.pipelines.ItemDistributorPipeline': 1,
-#    'webscraper.pipelines.ParserPipeline': 1,
-#    'webscraper.pipelines.MongoPipeline': 2,
+   'webscraper.pipelines.ParserPipeline': 1,
+   'webscraper.pipelines.MongoPipeline': 2,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -104,7 +103,7 @@ DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
-DEPTH_LIMIT = 2
+DEPTH_LIMIT = 1
 CONCURRENT_ITEMS = 200
 
 DOWNLOAD_TIMEOUT = 15
@@ -121,9 +120,6 @@ DUPEFILTER_CLASS = 'webscraper.middlewares.DupeFilter'
 # remember, don't set this too high, because Mongo max doc size is 16 MB
 DB_BUFFER_SIZE = 1000
 DB_UPLOAD_DELAY = 0
-DB_PIPELINE_PROCESSES = 2
-DB_QUEUE_HANDLERS = 4
-DB_WORKER_THREADS = 4
 MONGO = {
     "URL": os.getenv("MONGODB_URL", "mongodb://127.0.0.1:27017"),
     "NAME": os.getenv("MONGODB_NAME", "db_name"),
@@ -140,5 +136,3 @@ MONGO = {
 
 if authMech := os.getenv("MONGODB_AUTH_MECH", None):
     MONGO["AUTHENTICATION"]["authMechanism"] = authMech
-
-MAX_PIPELINE_PROCESSES = 2

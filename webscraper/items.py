@@ -38,11 +38,3 @@ class Image(Item):
         super().__init__(*args, **kwargs)
         self["_id"] = self["url"]
         self["time"] = str(datetime.now())
-
-class Backlink(Item):
-    url = Field()
-    backlink = Field()
-
-class Token(Item):
-    token = Field()
-    url = Field()
