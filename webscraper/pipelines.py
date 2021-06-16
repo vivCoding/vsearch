@@ -92,14 +92,14 @@ class MongoPipeline:
             f.write(f"Pages collection size: {self.pages_db.get_count()} docs\n")
             f.write(f"Images collection size: {self.images_db.get_count()} docs\n")
             f.write(f"Page tokens collection size: {self.page_tokens_db.get_count()} docs\n")
-            f.write(f"Image tokens collection size: {self.page_tokens_db.get_count()} docs\n")
+            f.write(f"Image tokens collection size: {self.image_tokens_db.get_count()} docs\n")
         print("\n" + ("=" * 30))
         print ("Time took:", elapsed_time)
         print ("Total scraped:", self.count)
         print ("Pages collection size:", self.pages_db.get_count(), "docs")
         print ("Images collection size:", self.images_db.get_count(), "docs")
         print ("Page tokens collection size:", self.page_tokens_db.get_count(), "docs")
-        print ("Page tokens distinct count:", self.image_tokens_db.get_count(), "tokens")
+        print ("Image tokens collection size:", self.image_tokens_db.get_count(), "tokens")
         print ("=" * 30, "\n")
 
     def process_item(self, item, spider):
