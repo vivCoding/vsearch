@@ -7,6 +7,7 @@ class TestSpider(scrapy.Spider):
     allowed_domains = ["www.nytimes.com"]
     start_urls = [
         "https://www.nytimes.com",
+        # "https://quotes.toscrape.com"
     ]
 
     def parse(self, response):

@@ -1,0 +1,7 @@
+{
+    "_id": "unique_image_url",
+    "src": "unique_image_url",
+    "alt": "image_alt_text",
+    "page_url": "page_containing_image",
+    "time": "yyyy-mm-dd hh:mm:ss:ms.msmsms"
+}
