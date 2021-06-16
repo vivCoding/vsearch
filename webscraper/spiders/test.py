@@ -4,10 +4,10 @@ from webscraper.scrape import get_content
 class TestSpider(scrapy.Spider):
     name = "test"
 
-    # allowed_domains = ["www.nytimes.com"]
+    allowed_domains = ["www.nytimes.com"]
     start_urls = [
-        # "https://www.nytimes.com",
-        "https://quotes.toscrape.com"
+        "https://www.nytimes.com",
+        # "https://quotes.toscrape.com"
     ]
 
     def parse(self, response):

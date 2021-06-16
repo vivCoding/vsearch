@@ -16,7 +16,6 @@ BOT_NAME = 'webscraper'
 SPIDER_MODULES = ['webscraper.spiders']
 NEWSPIDER_MODULE = 'webscraper.spiders'
 
-
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'webscraper (+http://www.yourdomain.com)'
 
@@ -24,7 +23,7 @@ NEWSPIDER_MODULE = 'webscraper.spiders'
 ROBOTSTXT_OBEY = True
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 200
+CONCURRENT_REQUESTS = 100
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -54,9 +53,19 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    'webscraper.middlewares.WebscraperDownloaderMiddleware': 543,
-#}
+# Random user agent with https://pypi.org/project/scrapy-user-agents/
+# Random proxies with https://github.com/TeamHG-Memex/scrapy-rotating-proxies
+RANDOM_UA_PER_PROXY = True
+if ua_file := os.getenv("RANDOM_UA_FILE", None):
+    RANDOM_UA_FILE = ua_file
+DOWNLOADER_MIDDLEWARES = {
+    'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+    'scrapy_user_agents.middlewares.RandomUserAgentMiddleware': 400,
+    'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
+    'rotating_proxies.middlewares.BanDetectionMiddleware': 620,
+}
+if proxy_list := os.getenv("ROTATING_PROXY_LIST_PATH", None):
+    ROTATING_PROXY_LIST_PATH = proxy_list
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -80,7 +89,7 @@ AUTOTHROTTLE_START_DELAY = 0
 AUTOTHROTTLE_MAX_DELAY = 3
 # The average number of requests Scrapy should be sending in parallel to
 # each remote server
-AUTOTHROTTLE_TARGET_CONCURRENCY = 100
+AUTOTHROTTLE_TARGET_CONCURRENCY = 30
 # Enable showing throttling stats for every response received:
 #AUTOTHROTTLE_DEBUG = False
 
@@ -96,7 +105,7 @@ AUTOTHROTTLE_TARGET_CONCURRENCY = 100
 # See (https://docs.scrapy.org/en/latest/topics/broad-crawls.html)
 
 SCHEDULER_PRIORITY_QUEUE = 'scrapy.pqueues.DownloaderAwarePriorityQueue'
-REACTOR_THREADPOOL_MAXSIZE = 80
+REACTOR_THREADPOOL_MAXSIZE = 50
 
 # go in breadth-first-order rather than depth first
 DEPTH_PRIORITY = 1
@@ -104,7 +113,7 @@ SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
 DEPTH_LIMIT = 1
-CONCURRENT_ITEMS = 200
+CONCURRENT_ITEMS = 100
 
 DOWNLOAD_TIMEOUT = 15
 RETRY_ENABLED = False
