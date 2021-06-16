@@ -28,6 +28,7 @@ class ParserPipeline:
         words = re.split(" +", re.sub("([^\w\s])|(\n)|(\t)|(\r)", " ", text).strip(" "))
         valid = []
         for word in words:
+            if not word.isascii(): continue
             stemmed = ParserPipeline.stemmer.stem(word, to_lowercase=True) if stem else word.lower()
             if stemmed not in ParserPipeline.STOP_WORDS:
                 valid.append(stemmed)
@@ -43,7 +44,7 @@ class ParserPipeline:
             title = self.format_text(tags[0].text_content())
         else: title = ""
         description = self.format_text(metas[0].attrib.get("content", "")) if len(metas := doc.cssselect("meta[name=description]")) > 0 else ""
-        page_tokens = self.get_words(doc.text_content(), stem=False)
+        page_tokens = self.get_words(doc.text_content(), stem=True)
         # get images and get surrounding text
         images = []
         for img in doc.cssselect("img"):
@@ -54,7 +55,7 @@ class ParserPipeline:
             # Average word length is 5, so 50 words has string length of 250 + 50 spaces
             while len(div.text_content()) <= 300 and (parent := div.getparent()) is not None:
                 div = parent
-            image_tokens = self.get_words(div.text_content() + " " + alt, stem=False)
+            image_tokens = self.get_words(div.text_content() + " " + alt, stem=True)
             images.append(Image(
                 url = src,
                 alt = alt,
