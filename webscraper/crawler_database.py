@@ -232,7 +232,8 @@ class TokensDatabase(Database):
                 else: tokens[token]["urls"][url]["count"] += 1
         tokens_to_check = list(tokens.keys())
         # Due to multithreading, we can accidentally end up with duplicate docs. So just keep trying to add/update it
-        while True:
+        # Max retries is 3
+        for _ in range(3):
             try:
                 # Query the database to get all documents with token, and get their array elements that contain urls
                 tokens_in_db = self.aggregate([
