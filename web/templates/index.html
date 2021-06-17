@@ -1,0 +1,12 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+<div id = "main">
+    <img src = "static/logo.png"/>
+    <h1>VSearch</h1>
+    <form id = "search" action="/search" method="GET">
+        <input id="query" name="query" type="text" placeholder="Enter your search query" size="40"/>
+        <input id="submit" type="submit" value="Go!">
+    </form>
+</div>
+{% endblock %}
