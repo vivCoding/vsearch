@@ -6,7 +6,7 @@ class EntSpider(scrapy.Spider):
 
     start_urls = [
         "https://www.reddit.com",
-        "https://www.facebook.com",
+        # "https://www.facebook.com",
         "https://www.twitter.com",
         "https://www.gamepedia.com",
         "https://www.fandom.com",
