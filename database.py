@@ -42,7 +42,7 @@ class Database:
             print ("- Connected to database")
         else:
             Database.connections[connection]["total"] += 1
-            print ("- Ignoring duplicate connection client")
+            print ("-   Ignoring duplicate connection client")
         self.connection = connection
         self.database = Database.connections[connection]["client"][database_name]
         self.collection = self.database[collection_name]

@@ -1,5 +1,4 @@
-from pymongo import ReplaceOne, UpdateOne
-from pymongo.operations import InsertOne
+from pymongo import ReplaceOne, UpdateOne, InsertOne
 from database import Database
 from webscraper.settings import MONGO, DB_BUFFER_SIZE, DB_UPLOAD_DELAY
 

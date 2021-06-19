@@ -2,12 +2,12 @@ import scrapy
 from webscraper.scrape import get_content
 
 class NewsSpider(scrapy.Spider):
-    name = "news"
+    name = "news2"
 
     start_urls = [
-        "https://www.nytimes.com",
-        "https://www.bbc.com",
-        "https://www.cnn.com",
+        "https://www.cbsnews.com",
+        "https://weather.com",
+        "https://www.yahoo.com"
     ]
 
     def parse(self, response):

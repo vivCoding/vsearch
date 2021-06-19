@@ -7,9 +7,6 @@ class NewsSpider(scrapy.Spider):
     start_urls = [
         "https://www.google.com",
         "https://www.wikipedia.org",
-        "https://www.stackoverflow.com",
-        "https://www.w3schools.com",
-        "https://www.freecodecamp.org",
         "https://www.espn.com",
     ]
 

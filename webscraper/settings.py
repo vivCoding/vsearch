@@ -16,9 +16,6 @@ BOT_NAME = 'webscraper'
 SPIDER_MODULES = ['webscraper.spiders']
 NEWSPIDER_MODULE = 'webscraper.spiders'
 
-# Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'webscraper (+http://www.yourdomain.com)'
-
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
 
@@ -28,10 +25,10 @@ CONCURRENT_REQUESTS = 100
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 0
+DOWNLOAD_DELAY = 2.5
 # The download delay setting will honor only one of:
-#CONCURRENT_REQUESTS_PER_DOMAIN = 16
-#CONCURRENT_REQUESTS_PER_IP = 16
+# CONCURRENT_REQUESTS_PER_DOMAIN = 16
+# CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
 COOKIES_ENABLED = False
@@ -51,6 +48,9 @@ DEFAULT_REQUEST_HEADERS = {
 #    'webscraper.middlewares.WebscraperSpiderMiddleware': 543,
 #}
 
+# Crawl responsibly by identifying yourself (and your website) on the user-agent
+#USER_AGENT = 'webscraper (+http://www.yourdomain.com)'
+
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 # Random user agent with https://pypi.org/project/scrapy-user-agents/
@@ -66,6 +66,9 @@ DOWNLOADER_MIDDLEWARES = {
 }
 if proxy_list := os.getenv("ROTATING_PROXY_LIST_PATH", None):
     ROTATING_PROXY_LIST_PATH = proxy_list
+ROTATING_PROXY_PAGE_RETRY_TIMES = 5
+ROTATING_PROXY_BACKOFF_BASE = 210
+ROTATING_PROXY_BACKOFF_CAP = 1800
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -76,20 +79,20 @@ if proxy_list := os.getenv("ROTATING_PROXY_LIST_PATH", None):
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'webscraper.pipelines.ParserPipeline': 1,
-   'webscraper.pipelines.MongoPipeline': 2,
+#    'webscraper.pipelines.ParserPipeline': 1,
+#    'webscraper.pipelines.MongoPipeline': 2,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
-AUTOTHROTTLE_ENABLED = True
-# The initial download delay
-AUTOTHROTTLE_START_DELAY = 0
-# The maximum download delay to be set in case of high latencies
-AUTOTHROTTLE_MAX_DELAY = 3
-# The average number of requests Scrapy should be sending in parallel to
-# each remote server
-AUTOTHROTTLE_TARGET_CONCURRENCY = 30
+# AUTOTHROTTLE_ENABLED = True
+# # The initial download delay
+# # AUTOTHROTTLE_START_DELAY = 1
+# # The maximum download delay to be set in case of high latencies
+# AUTOTHROTTLE_MAX_DELAY = 4
+# # The average number of requests Scrapy should be sending in parallel to
+# # each remote server
+# AUTOTHROTTLE_TARGET_CONCURRENCY = 30
 # Enable showing throttling stats for every response received:
 #AUTOTHROTTLE_DEBUG = False
 
@@ -112,10 +115,11 @@ DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
-DEPTH_LIMIT = 1
+# DEPTH_LIMIT = 1
+DEPTH_STATS_VERBOSE = True
 CONCURRENT_ITEMS = 100
 
-DOWNLOAD_TIMEOUT = 15
+DOWNLOAD_TIMEOUT = 20
 RETRY_ENABLED = False
 REDIRECT_ENABLED = True
 REDIRECT_MAX_TIMES = 3
