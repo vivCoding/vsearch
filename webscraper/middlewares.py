@@ -11,6 +11,7 @@ from scrapy.dupefilters import RFPDupeFilter
 from webscraper.scrape import format_url, remove_fragments
 from pymongo.operations import UpdateOne
 
+
 class DupeFilter(RFPDupeFilter):
     def __init__(self, path, debug):
         super().__init__(path=path, debug=debug)

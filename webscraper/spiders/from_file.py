@@ -18,7 +18,6 @@ class CustomSpider(scrapy.Spider):
                     self.allowed_domains = f.read().splitlines()
             except: print ("Need valid txt file containing allowed domains!")
 
-
     def parse(self, response):
         if response.status == 200:
             content = get_content(response)

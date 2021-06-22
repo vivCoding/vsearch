@@ -2,10 +2,15 @@
 
 {% block content %}
 <div id = "results">
+    <p id = "resultsNumber">{{ results|length }} results for "{{ query }}"</p>
+    {% if results|length == 0 %}
+        <br>
+        <p>Whoops! There appears to be no results!</p>
+    {% endif %}
     {% for result in results %}
         <div class = "pageResult">
-            <p><a class = "resultTitle" href = "{{ result['url'] }}">{{ result["title"] }}</a></p>
             <p><a class = "resultUrl" href = "{{ result['url'] }}">{{ result['url'] }}</a></p>
+            <p><a class = "resultTitle" href = "{{ result['url'] }}">{{ result["title"] }}</a></p>
             <p class = "resultDescription">{{ result["description"] }}</p>
         </div>
     {% endfor %}

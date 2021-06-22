@@ -1,22 +1,5 @@
 from pymongo import MongoClient
 from pymongo import ReplaceOne, UpdateOne, InsertOne
-import os
-
-MONGO = {
-    "URL": os.getenv("MONGODB_URL", "mongodb://127.0.0.1:27017"),
-    "NAME": os.getenv("MONGODB_NAME", "db_name"),
-    "AUTHENTICATION": {
-        "username": os.getenv("MONGODB_USER", ""),
-        "password": os.getenv("MONGODB_PWD", ""),
-        "authSource": os.getenv("MONGODB_AUTH_SRC", "")
-    },
-    "PAGES_COLLECTION": os.getenv("MONGODB_PAGES_COLLECTION", "pages"),
-    "IMAGES_COLLECTION": os.getenv("MONGODB_IMAGES_COLLECTION", "images"),
-    "PAGE_TOKENS_COLLECTION": os.getenv("MONGODB_PAGE_TOKENS_COLLECTION", "page_tokens"),
-    "IMAGE_TOKENS_COLLECTION": os.getenv("MONGODB_IMAGE_TOKENS_COLLECTION", "image_tokens"),
-}
-if authMech := os.getenv("MONGODB_AUTH_MECH", None):
-    MONGO["AUTHENTICATION"]["authMechanism"] = authMech
 
 class Database:
     """Represents MongoDB database instance with convenient access functions
@@ -114,13 +97,8 @@ class Database:
                 del Database.connections[self.connection]
             else: print ("- ", Database.connections[self.connection]["total"], "remaining clients still connected")
 
-class PagesDatabase(Database):
-    def __init__(self) -> None:
-        super().__init__(
-            MONGO["NAME"], MONGO["PAGES_COLLECTION"],
-            MONGO["URL"], MONGO["AUTHENTICATION"],
-        )
 
+class PagesDatabase(Database):
     def push_to_db(self):
         if len(self.buffer) == 0: return
         try: self.collection.insert_many(self.buffer, ordered=False)
@@ -145,21 +123,25 @@ class PagesDatabase(Database):
 
 
 class ImageDatabase(Database):
-    def __init__(self) -> None:
-        super().__init__(
-            MONGO["NAME"], MONGO["IMAGES_COLLECTION"],
-            MONGO["URL"], MONGO["AUTHENTICATION"],
-        )
+    pass
 
 
 class TokensDatabase(Database):
-    def __init__(self, tokens_collection) -> None:
-        # can be either page tokens or image tokens
-        super().__init__(
-            MONGO["NAME"], tokens_collection,
-            MONGO["URL"], MONGO["AUTHENTICATION"],
-        )
-    
+    def query_urls_in_tokens(self, tokens, urls):
+        return list(self.aggregate([
+            {"$match": {"token": {"$in": tokens}}},
+            {"$project": {
+                "_id": 0, "token": 1,
+                "urls": {
+                    "$filter": {
+                        "input": "$urls",
+                        "as": "url_elem",
+                        "cond": {"$in": ["$$url_elem.url", urls]}
+                    }
+                }
+            }}
+        ]))
+
     def push_to_db(self):
         if len(self.buffer) == 0: return
         try:
@@ -190,19 +172,7 @@ class TokensDatabase(Database):
 
             # Query the database to get all documents with token, and get their array elements that contain urls
             unique_tokens = list(tokens.keys())
-            tokens_in_db = self.aggregate([
-                {"$match": {"token": {"$in": unique_tokens}}},
-                {"$project": {
-                    "_id": 0, "token": 1,
-                    "urls": {
-                        "$filter": {
-                            "input": "$urls",
-                            "as": "url_elem",
-                            "cond": {"$in": ["$$url_elem.url", list(unique_urls)]}
-                        }
-                    }
-                }}
-            ])
+            tokens_in_db = self.query_urls_in_tokens(unique_tokens, unique_urls)
             # We take te db result and change it into a dictionary rather an array to easily search up stuff
             tokens_in_db = {
                 doc["token"]: {

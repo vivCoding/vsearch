@@ -104,20 +104,20 @@ class MongoPipeline:
 
     def process_item(self, item, spider):
         item = dict(item)
-        page_tokens = item.pop("tokens", [])
+        # page_tokens = item.pop("tokens", [])
         images = item.pop("images", [])
-        page_tokens_docs = [{
-            "token": token,
-            "url": item["url"]
-        } for token in page_tokens]
-        self.page_tokens_db.insert_many(page_tokens_docs)
-        for image in images:
-            image_tokens = image.pop("tokens", [])
-            image_token_docs = [{
-                "url": image["url"],
-                "token": token
-            } for token in image_tokens]
-            self.image_tokens_db.insert_many(image_token_docs)
+        # page_tokens_docs = [{
+        #     "token": token,
+        #     "url": item["url"]
+        # } for token in page_tokens]
+        # self.page_tokens_db.insert_many(page_tokens_docs)
+        # for image in images:
+        #     image_tokens = image.pop("tokens", [])
+        #     image_token_docs = [{
+        #         "url": image["url"],
+        #         "token": token
+        #     } for token in image_tokens]
+        #     self.image_tokens_db.insert_many(image_token_docs)
         self.images_db.insert_many(images)
         self.pages_db.insert(item)
         self.count += 1

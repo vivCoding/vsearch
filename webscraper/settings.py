@@ -25,7 +25,7 @@ CONCURRENT_REQUESTS = 100
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 2.5
+DOWNLOAD_DELAY = 2
 # The download delay setting will honor only one of:
 CONCURRENT_REQUESTS_PER_DOMAIN = 30
 # CONCURRENT_REQUESTS_PER_IP = 16
@@ -79,8 +79,8 @@ ROTATING_PROXY_BACKOFF_CAP = 1800
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-#    'webscraper.pipelines.ParserPipeline': 1,
-#    'webscraper.pipelines.MongoPipeline': 2,
+   'webscraper.pipelines.ParserPipeline': 1,
+   'webscraper.pipelines.MongoPipeline': 2,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -115,11 +115,11 @@ DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
-# DEPTH_LIMIT = 1
+DEPTH_LIMIT = 1
 DEPTH_STATS_VERBOSE = True
 CONCURRENT_ITEMS = 100
 
-DOWNLOAD_TIMEOUT = 20
+DOWNLOAD_TIMEOUT = 30
 RETRY_ENABLED = False
 REDIRECT_ENABLED = True
 REDIRECT_MAX_TIMES = 3
@@ -146,6 +146,5 @@ MONGO = {
     "PAGE_TOKENS_COLLECTION": os.getenv("MONGODB_PAGE_TOKENS_COLLECTION", "page_tokens"),
     "IMAGE_TOKENS_COLLECTION": os.getenv("MONGODB_IMAGE_TOKENS_COLLECTION", "image_tokens"),
 }
-
 if authMech := os.getenv("MONGODB_AUTH_MECH", None):
     MONGO["AUTHENTICATION"]["authMechanism"] = authMech
