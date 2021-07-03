@@ -4,9 +4,10 @@ from webscraper.scrape import get_content
 class NewsSpider(scrapy.Spider):
     name = "misc"
 
+    allowed_domains = ["google.com", "en.m.wikipedia.org", "espn.com"]
     start_urls = [
         "https://www.google.com",
-        "https://www.wikipedia.org",
+        "https://en.m.wikipedia.org/wiki/Main_Page",
         "https://www.espn.com",
     ]
 

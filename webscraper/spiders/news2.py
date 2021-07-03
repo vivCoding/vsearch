@@ -4,6 +4,7 @@ from webscraper.scrape import get_content
 class NewsSpider(scrapy.Spider):
     name = "news2"
 
+    allowed_domains = ["cbsnews.com", "weather.com", "yahoo.com"]
     start_urls = [
         "https://www.cbsnews.com",
         "https://weather.com",

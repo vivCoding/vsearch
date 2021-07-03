@@ -7,7 +7,8 @@
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 from webscraper.crawler_database import CrawlerDB
-from webscraper.items import Image, Page, ParsedPage
+from webscraper.items import Image, ParsedPage
+from webscraper.settings import UPLOAD_TOKENS
 import time
 from nltk import PorterStemmer
 from lxml import html
@@ -104,20 +105,21 @@ class MongoPipeline:
 
     def process_item(self, item, spider):
         item = dict(item)
-        # page_tokens = item.pop("tokens", [])
         images = item.pop("images", [])
-        # page_tokens_docs = [{
-        #     "token": token,
-        #     "url": item["url"]
-        # } for token in page_tokens]
-        # self.page_tokens_db.insert_many(page_tokens_docs)
-        # for image in images:
-        #     image_tokens = image.pop("tokens", [])
-        #     image_token_docs = [{
-        #         "url": image["url"],
-        #         "token": token
-        #     } for token in image_tokens]
-        #     self.image_tokens_db.insert_many(image_token_docs)
+        if UPLOAD_TOKENS:
+            page_tokens = item.pop("tokens", [])
+            page_tokens_docs = [{
+                "token": token,
+                "url": item["url"]
+            } for token in page_tokens]
+            self.page_tokens_db.insert_many(page_tokens_docs)
+            for image in images:
+                image_tokens = image.pop("tokens", [])
+                image_token_docs = [{
+                    "url": image["url"],
+                    "token": token
+                } for token in image_tokens]
+                self.image_tokens_db.insert_many(image_token_docs)
         self.images_db.insert_many(images)
         self.pages_db.insert(item)
         self.count += 1

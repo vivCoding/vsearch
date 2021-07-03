@@ -1,5 +1,11 @@
 from pymongo import MongoClient
 from pymongo import ReplaceOne, UpdateOne, InsertOne
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+# TODO: consider setting up schemas using pymongoose. Or not, since im lazy :)
+# TODO: consider implementing asyncio with Motor
 
 class Database:
     """Represents MongoDB database instance with convenient access functions
@@ -41,7 +47,7 @@ class Database:
             print ("- Connected to database")
         else:
             Database.connections[connection]["total"] += 1
-            print ("- Ignoring duplicate connection client")
+            print ("-   Ignoring duplicate connection client")
         self.connection = connection
         self.database = Database.connections[connection]["client"][database_name]
         self.collection = self.database[collection_name]
@@ -49,7 +55,7 @@ class Database:
         self.max_buffer = db_buffer_size
         self.upload_delay = db_upload_delay
 
-    def check_if_exists(self, url) -> bool:
+    def check_if_exists(self, url: str) -> bool:
         """Returns true if url exists in database, else false"""
         url = url.rstrip('/').rstrip(' ')
         return self.collection.count_documents({"url": url}) != 0
@@ -60,15 +66,15 @@ class Database:
         if len(self.buffer) >= self.max_buffer:
             self.push_to_db()
 
-    def insert_many(self, items):
+    def insert_many(self, items: list):
         self.buffer += items
         if len(self.buffer) >= self.max_buffer:
             self.push_to_db()
 
-    def query(self, query={}, projection={}) -> list:
+    def query(self, query={}, projection={}, skip=0, limit=0, sort=None) -> list:
         """Returns list of results from database based on query. Leave parameter blank to get all documents"""
-        query_result = list(self.collection.find(filter=query, projection=projection))
-        return query_result
+        query_result = list(self.collection.find(filter=query, projection=projection, skip=skip, limit=limit, sort=sort))
+        return list(query_result)
     
     def aggregate(self, pipeline) -> list:
         """Returns a list of results from MongoDB aggregation"""
@@ -99,6 +105,21 @@ class Database:
 
 
 class PagesDatabase(Database):
+    def __init__(self, db_buffer_size=100, db_upload_delay=0):
+        auth = {
+            "username": os.getenv("MONGODB_USER", ""),
+            "password": os.getenv("MONGODB_PWD", ""),
+            "authSource": os.getenv("MONGODB_AUTH_SRC", "")
+        }
+        if authMech := os.getenv("MONGODB_AUTH_MECH", None):
+            auth["authMechanism"] = authMech
+        super().__init__(
+            os.getenv("MONGODB_NAME", "db_name"),
+            os.getenv("MONGODB_PAGES_COLLECTION", "pages"),
+            os.getenv("MONGODB_URL", "mongodb://127.0.0.1:27017"),
+            auth, db_buffer_size, db_upload_delay
+        )
+
     def push_to_db(self):
         if len(self.buffer) == 0: return
         try: self.collection.insert_many(self.buffer, ordered=False)
@@ -123,11 +144,39 @@ class PagesDatabase(Database):
 
 
 class ImageDatabase(Database):
-    pass
+    def __init__(self, db_buffer_size=100, db_upload_delay=0):
+        auth = {
+            "username": os.getenv("MONGODB_USER", ""),
+            "password": os.getenv("MONGODB_PWD", ""),
+            "authSource": os.getenv("MONGODB_AUTH_SRC", "")
+        }
+        if authMech := os.getenv("MONGODB_AUTH_MECH", None):
+            auth["authMechanism"] = authMech
+        super().__init__(
+            os.getenv("MONGODB_NAME", "db_name"),
+            os.getenv("MONGODB_IMAGES_COLLECTION", "images"),
+            os.getenv("MONGODB_URL", "mongodb://127.0.0.1:27017"),
+            auth, db_buffer_size, db_upload_delay
+        )
 
 
-class TokensDatabase(Database):
-    def query_urls_in_tokens(self, tokens, urls):
+class PageTokensDatabase(Database):
+    def __init__(self, db_buffer_size=100, db_upload_delay=0):
+        auth = {
+            "username": os.getenv("MONGODB_USER", ""),
+            "password": os.getenv("MONGODB_PWD", ""),
+            "authSource": os.getenv("MONGODB_AUTH_SRC", "")
+        }
+        if authMech := os.getenv("MONGODB_AUTH_MECH", None):
+            auth["authMechanism"] = authMech
+        super().__init__(
+            os.getenv("MONGODB_NAME", "db_name"),
+            os.getenv("MONGODB_PAGE_TOKENS_COLLECTION", "page_tokens"),
+            os.getenv("MONGODB_URL", "mongodb://127.0.0.1:27017"),
+            auth, db_buffer_size, db_upload_delay
+        )
+
+    def query_urls_in_tokens(self, tokens: list, urls: list):
         return list(self.aggregate([
             {"$match": {"token": {"$in": tokens}}},
             {"$project": {
@@ -172,7 +221,7 @@ class TokensDatabase(Database):
 
             # Query the database to get all documents with token, and get their array elements that contain urls
             unique_tokens = list(tokens.keys())
-            tokens_in_db = self.query_urls_in_tokens(unique_tokens, unique_urls)
+            tokens_in_db = self.query_urls_in_tokens(unique_tokens, list(unique_urls))
             # We take te db result and change it into a dictionary rather an array to easily search up stuff
             tokens_in_db = {
                 doc["token"]: {
@@ -185,10 +234,12 @@ class TokensDatabase(Database):
                 token_urls = list(tokens[token]["urls"].values())
                 # If the token does not exist in the database, add it as a new doc
                 if tokens_in_db.get(token, None) is None:
-                    tokens_to_write.append(InsertOne({
-                        "token": token,
-                        "urls": token_urls
-                    }))
+                    if tokens_in_db.get(token, None) is None:
+                        tokens_to_write.append(UpdateOne(
+                            {"token": token},
+                            {"$push": {"urls": { "$each": token_urls }}},
+                            upsert=True
+                        ))
                 else:
                     # If token does exist, check which urls exist in the doc array
                     for url in [token_url["url"] for token_url in token_urls]:
@@ -211,3 +262,9 @@ class TokensDatabase(Database):
             self.collection.bulk_write(tokens_to_write, ordered=False)
         except Exception as e: pass
         self.buffer *= 0
+
+
+class ImageTokensDatabase(PageTokensDatabase):
+    def __init__(self, db_buffer_size=100, db_upload_delay=0):
+        super().__init__(db_buffer_size=db_buffer_size, db_upload_delay=db_upload_delay)
+        self.collection = os.getenv("MONGODB_IMAGE_TOKENS_COLLECTION", "image_tokens")

@@ -3,7 +3,8 @@ from webscraper.scrape import get_content
 
 class EntSpider(scrapy.Spider):
     name = "ent"
-
+    
+    allowed_domains = ["reddit.com", "twitter.com", "gamepedia.com", "fandom.com"]
     start_urls = [
         "https://www.reddit.com",
         # "https://www.facebook.com",

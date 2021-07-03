@@ -10,17 +10,7 @@
 </head>
 <body>
     {% block header %}
-        <div id = "searchHeader">
-            <a href = "/"><img src = "static/logo.png"/></a>
-            <form id = "search" action="/search" method="GET">
-                <input id="query" name="query" type="text" placeholder="Enter your search query" size="70" value = "{{ query }}"/>
-                <input id="submit" type="submit" value="Go!">
-            </form>
-        </div>
-        <div id = "searchType">
-            <a href = "">All</a>
-            <a href = "">Images</a>
-        </div>
+        {% include 'base/searchbar.html' %}
     {% endblock %}
     {% block content %}{% endblock %}
     <div id = "footer">

@@ -1,7 +1,5 @@
-from pymongo import ReplaceOne, UpdateOne, InsertOne
-from web.database import PagesDatabase, ImageDatabase, TokensDatabase, Database
-from webscraper.settings import MONGO, DB_BUFFER_SIZE, DB_UPLOAD_DELAY
-
+from web.database import PagesDatabase, ImageDatabase, PageTokensDatabase, ImageTokensDatabase
+from webscraper.settings import DB_BUFFER_SIZE, DB_UPLOAD_DELAY
 
 class BacklinksDatabase(PagesDatabase):
     def push_to_db(self):
@@ -17,31 +15,11 @@ class CrawlerDB():
     """
     __instance = None
 
-    pages_db = PagesDatabase(
-        MONGO["NAME"], MONGO["PAGES_COLLECTION"],
-        MONGO["URL"], MONGO["AUTHENTICATION"],
-        DB_BUFFER_SIZE, DB_UPLOAD_DELAY
-    )
-    images_db = ImageDatabase(
-        MONGO["NAME"], MONGO["IMAGES_COLLECTION"],
-        MONGO["URL"], MONGO["AUTHENTICATION"],
-        DB_BUFFER_SIZE, DB_UPLOAD_DELAY
-    )
-    writes_db = BacklinksDatabase(
-        MONGO["NAME"], MONGO["PAGES_COLLECTION"],
-        MONGO["URL"], MONGO["AUTHENTICATION"],
-        DB_BUFFER_SIZE, DB_UPLOAD_DELAY
-    )
-    page_tokens_db = TokensDatabase(
-        MONGO["NAME"], MONGO["PAGE_TOKENS_COLLECTION"],
-        MONGO["URL"], MONGO["AUTHENTICATION"],
-        DB_BUFFER_SIZE, DB_UPLOAD_DELAY
-    )
-    image_tokens_db = TokensDatabase(
-        MONGO["NAME"], MONGO["IMAGE_TOKENS_COLLECTION"],
-        MONGO["URL"], MONGO["AUTHENTICATION"],
-        DB_BUFFER_SIZE, DB_UPLOAD_DELAY
-    )
+    pages_db = PagesDatabase(DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
+    images_db = ImageDatabase(DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
+    writes_db = BacklinksDatabase(DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
+    page_tokens_db = PageTokensDatabase(DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
+    image_tokens_db = ImageTokensDatabase(DB_BUFFER_SIZE, DB_UPLOAD_DELAY)
 
     def __new__(cls):
         if cls.__instance is None:

@@ -24,6 +24,7 @@ db.pages.createIndex({backlinks: 1}, {name: "backlinks"})
 Every image should be identifiable by their url. Create indexes for such
 ```
 db.images.createIndex({url: 1}, {name: "img_src_url", unique: true})
+db.images.createIndex({time: 1}, {name: "time"})
 ```
 Create indexes for tokens collection such that it's easy to search things up.
 ```

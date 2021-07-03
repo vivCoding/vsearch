@@ -115,7 +115,7 @@ DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
-DEPTH_LIMIT = 1
+# DEPTH_LIMIT = 1
 DEPTH_STATS_VERBOSE = True
 CONCURRENT_ITEMS = 100
 
@@ -133,18 +133,4 @@ DUPEFILTER_CLASS = 'webscraper.middlewares.DupeFilter'
 # remember, don't set this too high, because Mongo max doc size is 16 MB
 DB_BUFFER_SIZE = 1000
 DB_UPLOAD_DELAY = 0
-MONGO = {
-    "URL": os.getenv("MONGODB_URL", "mongodb://127.0.0.1:27017"),
-    "NAME": os.getenv("MONGODB_NAME", "db_name"),
-    "AUTHENTICATION": {
-        "username": os.getenv("MONGODB_USER", ""),
-        "password": os.getenv("MONGODB_PWD", ""),
-        "authSource": os.getenv("MONGODB_AUTH_SRC", "")
-    },
-    "PAGES_COLLECTION": os.getenv("MONGODB_PAGES_COLLECTION", "pages"),
-    "IMAGES_COLLECTION": os.getenv("MONGODB_IMAGES_COLLECTION", "images"),
-    "PAGE_TOKENS_COLLECTION": os.getenv("MONGODB_PAGE_TOKENS_COLLECTION", "page_tokens"),
-    "IMAGE_TOKENS_COLLECTION": os.getenv("MONGODB_IMAGE_TOKENS_COLLECTION", "image_tokens"),
-}
-if authMech := os.getenv("MONGODB_AUTH_MECH", None):
-    MONGO["AUTHENTICATION"]["authMechanism"] = authMech
+UPLOAD_TOKENS = True

@@ -53,7 +53,7 @@ body {
     display: block;
     margin: 0.5em 0;
     padding: 0.5em 1em;
-    width: 50vw;
+    max-width: 50vw;
     border-radius: 0.7em;
     color: white;
     /* transition: 0.05s; */
@@ -84,6 +84,8 @@ body {
 .pageResult .resultUrl {
     /* margin-left: 1em; */
     font-size: 80%;
+    overflow: hidden;
+    /* max-height: 1em; */
 }
 
 .pageResult .resultDescription {
